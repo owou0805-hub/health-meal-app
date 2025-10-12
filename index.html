@@ -4,15 +4,27 @@
     <script>
       (function () {
         const url = window.location.href;
-        const hasAuthHash = url.includes('#access_token=') || url.includes('#error=');
+        const hash = window.location.hash;
 
-        if (hasAuthHash) {
-          // 1. 將完整的 URL Hash 儲存到 Session Storage (臨時儲存)
-          sessionStorage.setItem('supabase.auth.hash', window.location.hash);
+        // 檢查是否有 Supabase 相關的 Auth Hash (Token 或 Error)
+        if (hash.includes('access_token') || hash.includes('type=recovery')) {
+            
+          // 1. 如果我們在 /reset-password 頁面，就讓它正常載入
+          if (url.includes('/reset-password')) {
+            return; 
+          }
           
-          // 2. 清除 URL Hash，防止 React Router 衝突
-          // 這樣頁面就能乾淨地載入，而不會被 Hash 錯誤碼影響
-          window.history.replaceState('', document.title, window.location.pathname + window.location.search);
+          // 2. 如果在根目錄 (或任何其他頁面)，且有 Token，則強制導航到 /reset-password
+          //    但只保留 pathname，這樣 React Router 才會被觸發
+          window.location.href = window.location.origin + '/reset-password' + hash;
+          
+          // 阻止後續腳本運行
+          return;
+        }
+
+        // 3. 如果網址中有 Supabase 錯誤訊息，清除它
+        if (hash.includes('error=')) {
+             window.history.replaceState('', document.title, window.location.pathname + window.location.search);
         }
       })();
     </script>
