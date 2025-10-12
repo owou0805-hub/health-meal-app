@@ -18,6 +18,8 @@ const ResetPasswordPage = () => {
     // 核心修正：使用輪詢機制 (Interval) 等待 Session 建立
     // =========================================================
     useEffect(() => {
+        // 在開始檢查前，強制清除所有舊的 Session 狀態
+        supabase.auth.signOut(); 
         let intervalId;
         
         const checkSession = async (currentIntervalId) => {
