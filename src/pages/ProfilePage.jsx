@@ -55,7 +55,7 @@ const ProfilePage = () => {
 
     // 處理陣列 (多選) 變更
     const handleArrayChange = (name, tag) => {
-        const currentArray = profile[name];
+        const currentArray = profile[name] || [];
         if (currentArray.includes(tag)) {
             setProfile({ ...profile, [name]: currentArray.filter(t => t !== tag) });
         } else {
@@ -66,25 +66,35 @@ const ProfilePage = () => {
 
     // 提交表單：執行 UPSERT (插入或更新)
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSaving(true);
-        setSuccessMessage(null);
+    e.preventDefault();
+    setSaving(true);
+    setSuccessMessage(null);
 
-        // 必須獲取當前用戶 ID，用於 Supabase 的 upsert 匹配
-        const { data: { user } } = await supabase.auth.getUser();
+    // 【關鍵修正】：必須在提交時，獲取當前用戶的 UUID
+    const { data: { user } } = await supabase.auth.getUser(); 
+    
+    if (!user) {
+        setError('您尚未登入，請重新登入！');
+        setSaving(false);
+        return;
+    }
 
-        const profileData = {
-            id: user.id, // 使用用戶的 UUID 作為 profile ID
-            username: profile.username,
-            health_goals: profile.health_goals,
-            dietary_habit: profile.dietary_habit,
-            allergens: profile.allergens,
-        };
+    const profileData = {
+        // 🎯 確保 ID 是正確的 Supabase 用戶 UUID
+        id: user.id, 
+        username: profile.username,
+        health_goals: profile.health_goals,
+        dietary_habit: profile.dietary_habit,
+        allergens: profile.allergens,
+    };
 
-        // 使用 upsert 邏輯：如果存在就更新，否則插入
-        const { error } = await supabase
-            .from('user_profiles')
-            .upsert(profileData, { onConflict: 'id' }); // 衝突時，使用 'id' 欄位進行更新
+    // 使用 upsert 邏輯：如果存在就更新，否則插入
+    // ... (保留 upsert 邏輯) ...
+
+    const { error } = await supabase
+        .from('user_profiles')
+        // 【關鍵】確保 onConflict 使用正確的欄位名稱 (id)
+        .upsert(profileData, { onConflict: 'id' });
 
         if (error) {
             console.error('Save failed:', error);
