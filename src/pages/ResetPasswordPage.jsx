@@ -1,3 +1,5 @@
+// src/pages/ResetPasswordPage.jsx
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -9,37 +11,32 @@ const ResetPasswordPage = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     
-    // 關鍵狀態：追蹤頁面是否已從 URL 成功「激活」
-    const [pageActivated, setPageActivated] = useState(false); 
+    // 【修正】：將狀態名稱改回 sessionReady，並預設為 false
+    const [sessionReady, setSessionReady] = useState(false); 
     
     const navigate = useNavigate();
 
     // =========================================================
-    // ⚡ 最終突破：強制使用 Token 進行 Session 設置
+    // 【核心修正】：使用延遲邏輯來解除鎖定表單
     // =========================================================
     useEffect(() => {
-        const activateSessionFromUrl = async () => {
-            const hash = window.location.hash;
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
             
-            // 檢查 URL 中是否有 Supabase 相關的 Auth Hash
-            if (hash.includes('access_token')) {
-                // 1. 嘗試獲取 Session，這一步會強制 Supabase SDK 解析 URL Hash
-                const { data: { session } } = await supabase.auth.getSession();
-                
-                if (session) {
-                    // 成功建立 Session，但我們仍需確保用戶可以操作
-                    setPageActivated(true); 
-                } else {
-                    // 即使嘗試了 getSession() 還是失敗，我們顯示錯誤
-                    setError('安全連線建立失敗，請確認連結有效。');
-                }
+            if (session) {
+                // 如果 Session 已經存在 (例如，Token 已經被處理好了)
+                setSessionReady(true);
             } else {
-                // 如果不是從重設連結訪問，則直接顯示錯誤
-                setError('請通過您電子郵件中的連結訪問此頁面，連結可能已過期或無效。');
+                // 如果 Session 不存在，我們假設 Token 仍在 URL 中，給予 2 秒延遲，然後強制啟用表單
+                setTimeout(() => {
+                    setSessionReady(true); 
+                    // 🚨 注意：這會讓表單啟用，但如果 Token 真的是過期的，提交時會失敗。
+                    // 這是為了繞開頁面鎖定。
+                }, 2000); 
             }
         };
 
-        activateSessionFromUrl();
+        checkSession();
     }, []); 
 
     // =========================================================
@@ -50,10 +47,12 @@ const ResetPasswordPage = () => {
         setError(null);
         setMessage('');
 
-        // 🚨 檢查：如果頁面未激活（Session 未設置），則阻止提交
-        if (!pageActivated) {
-            setError('請等待安全連線建立，或確認您是通過郵件連結訪問。');
-            return;
+        // 🚨 檢查：在提交時，確認 Session 是否存在
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!currentSession) {
+             setError('安全連線中斷或連結無效，請重新點擊郵件連結。');
+             return;
         }
 
         if (newPassword !== confirmPassword) {
@@ -68,7 +67,6 @@ const ResetPasswordPage = () => {
         setLoading(true);
 
         // 🎯 核心步驟：更新密碼
-        // 由於我們在 useEffect 中成功建立了 Session (pageActivated = true)，這裡就能成功
         const { error: updateError } = await supabase.auth.updateUser({
             password: newPassword
         });
@@ -76,12 +74,10 @@ const ResetPasswordPage = () => {
         setLoading(false);
 
         if (updateError) {
-            // 這個錯誤通常是密碼太弱或網路問題
             console.error('密碼更新失敗:', updateError);
             setError(`密碼更新失敗：${updateError.message}。請確認密碼強度！`); 
         } else {
             setMessage('🎉 密碼已成功重設！您將在 3 秒後返回登入頁面。');
-            // 成功後，清除 Session 並導向登入
             await supabase.auth.signOut();
             setTimeout(() => {
                 navigate('/'); 
@@ -99,14 +95,18 @@ const ResetPasswordPage = () => {
                     {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
                     {message && <p style={{ color: 'green', textAlign: 'center' }}>{message}</p>}
 
-                    {/* 🎯 關鍵：只在頁面未激活時顯示等待或錯誤訊息 */}
-                    {!pageActivated && !error && (
-                         <p className="highlight-text" style={{color: 'orange'}}>正在建立安全連線...</p>
-                    )}
-                    
-                    {/* 只有在頁面激活且沒有錯誤時才顯示表單 */}
-                    {pageActivated && !error ? (
+                    {/* 🎯 關鍵：檢查 sessionReady 狀態來決定是否啟用表單 */}
+                    {/* 顯示等待提示或表單 */}
+                    {!sessionReady && !error ? (
+                        <p className="highlight-text" style={{color: 'orange'}}>正在建立安全連線...</p>
+                    ) : (
                         <>
+                            {error && (
+                                <p style={{color: 'red', fontWeight: 'bold'}}>
+                                    安全連線中斷或連結無效，請重新點擊郵件連結。
+                                </p>
+                            )}
+
                             <p>請輸入您的新密碼。</p>
 
                             <div className="input-group">
@@ -118,7 +118,7 @@ const ResetPasswordPage = () => {
                                     placeholder="請輸入新密碼 (至少6個字元)"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    disabled={loading}
+                                    disabled={loading || !sessionReady}
                                 />
                             </div>
                             
@@ -131,17 +131,14 @@ const ResetPasswordPage = () => {
                                     placeholder="請再次輸入新密碼"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    disabled={loading}
+                                    disabled={loading || !sessionReady}
                                 />
                             </div>
                             
-                            <button type="submit" disabled={loading}>
+                            <button type="submit" disabled={loading || !sessionReady}>
                                 {loading ? '正在重設...' : '確認重設密碼'}
                             </button>
                         </>
-                    ) : (
-                         /* 顯示最終錯誤提示 */
-                        !error && <p style={{color: 'red', fontWeight: 'bold'}}>請確認您是通過郵件連結訪問此頁面。</p>
                     )}
                     
                     {/* 返回登入按鈕 */}
