@@ -18,10 +18,8 @@ const ResetPasswordPage = () => {
     // 核心修正：使用輪詢機制 (Interval) 等待 Session 建立
     // =========================================================
     useEffect(() => {
-        // 在開始檢查前，強制清除所有舊的 Session 狀態
-        supabase.auth.signOut(); 
-        let intervalId;
-        
+        let intervalId; 
+
         const checkSession = async (currentIntervalId) => {
             // 1. 嘗試獲取 Session
             const { data: { session } } = await supabase.auth.getSession();
@@ -31,19 +29,17 @@ const ResetPasswordPage = () => {
                 clearInterval(currentIntervalId); 
                 setSessionReady(true);
             } else {
-                // 2. 如果 Session 仍然為空，我們檢查 URL Hash 是否存在
+                // 2. 如果 Session 仍然為空，則檢查 URL Hash 判斷是否在重設流程中
                 const hash = window.location.hash;
-                
-                if (hash.includes('access_token')) {
-                    // 【關鍵修正】：如果瀏覽器中有 Token 但 Session 仍為空，
-                    //              我們強制呼叫 onAuthStateChange 讓 Supabase SDK 重試解析
-                    supabase.auth.onAuthStateChange(() => {}); 
 
-                } else if (!sessionReady) {
+                if (!hash.includes('access_token') && !hash.includes('type=recovery') && !sessionReady) {
                     // 如果 URL 中沒有 Token (已經被清除或原本就沒有) 且沒有 Session
                     clearInterval(currentIntervalId);
                     // 顯示最終錯誤，並停止輪詢
-                    setError('請通過您電子郵件中的連結訪問此頁面，連結可能已過期或無效。');
+                    setError('請通過您電子郵件中的有效連結訪問此頁面，連結可能已過期或無效。');
+                } else if (!sessionReady) {
+                    // 這是為了在沒有錯誤的情況下，顯示 "正在建立安全連線"
+                    setError('正在等待 Supabase 設置安全連線...');
                 }
             }
         };
