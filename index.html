@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <script>
+      (function () {
+        const url = window.location.href;
+        const hasAuthHash = url.includes('#access_token=') || url.includes('#error=');
+
+        if (hasAuthHash) {
+          // 1. 將完整的 URL Hash 儲存到 Session Storage (臨時儲存)
+          sessionStorage.setItem('supabase.auth.hash', window.location.hash);
+          
+          // 2. 清除 URL Hash，防止 React Router 衝突
+          // 這樣頁面就能乾淨地載入，而不會被 Hash 錯誤碼影響
+          window.history.replaceState('', document.title, window.location.pathname + window.location.search);
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>今天吃什麼</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
