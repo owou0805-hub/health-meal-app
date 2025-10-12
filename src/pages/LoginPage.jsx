@@ -81,10 +81,11 @@ const LoginPage = ({ onLogin }) => {
     setAuthError(null);
     
     const targetUrl = window.location.origin + '/reset-password';
-    
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        // 🎯 讓 Supabase 導向到 /reset-password
-        redirectTo: targetUrl,
+        // 🚨 這是關鍵！我們要求 Supabase 在重設後將 User ID 導向回我們的頁面
+        // Supabase 的驗證服務會自動處理這個參數。
+        redirectTo: targetUrl + '?user_id={{user.id}}', 
     });
     
     setLoading(false);

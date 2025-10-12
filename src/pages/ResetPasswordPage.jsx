@@ -1,34 +1,50 @@
 // src/pages/ResetPasswordPage.jsx
 
-import React, { useState } from 'react'; // 移除 useEffect
-// 確保匯入了 service client
+import React, { useState, useEffect } from 'react';
 import { supabase, supabaseService } from '../supabaseClient'; 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom'; // 🎯 引入 useSearchParams
 
 const ResetPasswordPage = () => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [message, setMessage] = useState('');
-    // 關鍵修正：現在只用 error 顯示提交後的錯誤
-    const [error, setError] = useState(null); 
+    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     
-    // 關鍵修正：預設表單為啟用狀態 (true)，避免頁面鎖死
-    const [pageActivated, setPageActivated] = useState(true); 
+    const [targetUserId, setTargetUserId] = useState(null); // 🎯 新增：儲存要重設密碼的 User ID
+    const [searchParams] = useSearchParams(); // 🎯 讀取 URL 參數
     
     const navigate = useNavigate();
 
-    /*
-    // 【已移除】：所有複雜的 useEffect 邏輯和 Token 檢查
-    */
+    useEffect(() => {
+        // 1. 檢查 URL Hash 中的 Token (用於啟動頁面)
+        const hash = window.location.hash;
+        
+        // 2. 檢查 URL 查詢參數中的 User ID
+        const urlUserId = searchParams.get('user_id'); 
 
-    // =========================================================
-    // 處理密碼重設提交
-    // =========================================================
+        if (urlUserId) {
+            // 如果我們從 URL 中獲取到了 User ID，則頁面啟動
+            setTargetUserId(urlUserId);
+            setError(null);
+        } else if (!hash.includes('access_token')) {
+            // 如果沒有 user_id 且沒有 access_token，則無法操作
+            setError('請通過您電子郵件中的有效連結訪問此頁面，無法識別用戶身份。');
+        }
+    }, [searchParams]); // 依賴 URL 參數變化
+
+    // ... (handlePasswordReset 函式保持不變) ...
+
     const handlePasswordReset = async (e) => {
         e.preventDefault();
         setError(null);
         setMessage('');
+        
+        // 🚨 關鍵檢查：必須有 targetUserId 才能更新
+        if (!targetUserId) {
+            setError('無法識別用戶身份，請重新點擊郵件連結。');
+            return;
+        }
 
         if (newPassword !== confirmPassword) {
             setError('兩次輸入的密碼不一致，請重新檢查。');
@@ -41,22 +57,9 @@ const ResetPasswordPage = () => {
 
         setLoading(true);
 
-        // 1. 🚨 獲取當前用戶資訊（這是必須的，即使 Token 失敗，也需要用戶 ID）
-        // 這一行會利用瀏覽器中短暫存在的 Token，取得用戶的 ID
-        const { data: { user } } = await supabase.auth.getUser(); 
-
-        if (!user) {
-            setLoading(false);
-            // 這是最終錯誤：如果連用戶 ID 都取不到，表示 Token 已經徹底失效
-            setError('安全連線中斷，無法識別用戶身份。請重新發送密碼重設郵件。');
-            // 再次鎖定表單
-            setPageActivated(false);
-            return;
-        }
-
-        // 2. 🎯 使用服務密鑰直接更新用戶密碼 (繞過 Auth Session 檢查)
+        // 🎯 最終步驟：使用服務密鑰和 User ID 強制更新密碼
         const { error: updateError } = await supabaseService.auth.admin.updateUserById(
-            user.id,
+            targetUserId, // <--- 使用從 URL 獲取的 User ID
             { password: newPassword }
         );
 
