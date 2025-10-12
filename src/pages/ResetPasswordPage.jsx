@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-// 🎯 修正：從 supabaseClient 匯入 supabaseService
+// src/pages/ResetPasswordPage.jsx
+
+import React, { useState } from 'react'; // 移除 useEffect
+// 確保匯入了 service client
 import { supabase, supabaseService } from '../supabaseClient'; 
 import { useNavigate } from 'react-router-dom';
 
@@ -7,27 +9,26 @@ const ResetPasswordPage = () => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [message, setMessage] = useState('');
-    const [error, setError] = useState(null);
+    // 關鍵修正：現在只用 error 顯示提交後的錯誤
+    const [error, setError] = useState(null); 
     const [loading, setLoading] = useState(false);
+    
+    // 關鍵修正：預設表單為啟用狀態 (true)，避免頁面鎖死
+    const [pageActivated, setPageActivated] = useState(true); 
     
     const navigate = useNavigate();
 
-    // 🎯 修正：不再需要複雜的 useEffect 輪詢，只在載入時檢查一次 Token
-    useEffect(() => {
-        // 如果 URL 中有 Token，則顯示表單。否則顯示錯誤。
-        const hash = window.location.hash;
-        if (!hash.includes('access_token')) {
-            setError('請通過您電子郵件中的有效連結訪問此頁面，連結可能已過期或無效。');
-        }
-    }, []); 
+    /*
+    // 【已移除】：所有複雜的 useEffect 邏輯和 Token 檢查
+    */
 
+    // =========================================================
+    // 處理密碼重設提交
+    // =========================================================
     const handlePasswordReset = async (e) => {
         e.preventDefault();
         setError(null);
         setMessage('');
-
-        // 檢查：如果頁面一開始就顯示錯誤，則阻止提交
-        if (error) return; 
 
         if (newPassword !== confirmPassword) {
             setError('兩次輸入的密碼不一致，請重新檢查。');
@@ -40,20 +41,20 @@ const ResetPasswordPage = () => {
 
         setLoading(true);
 
-        // 🚨 【關鍵突破】：在提交前，強制讓 Supabase SDK 讀取 URL Hash
-        await supabase.auth.getSession(); 
-
-        // 🎯 核心步驟：使用服務密鑰直接更新用戶密碼 (繞過 Auth Session 檢查)
-        const { data: { user } } = await supabase.auth.getUser(); // 獲取當前用戶資訊
+        // 1. 🚨 獲取當前用戶資訊（這是必須的，即使 Token 失敗，也需要用戶 ID）
+        // 這一行會利用瀏覽器中短暫存在的 Token，取得用戶的 ID
+        const { data: { user } } = await supabase.auth.getUser(); 
 
         if (!user) {
-            // 如果連用戶資訊都取不到，表示 Token 真的無效
             setLoading(false);
-            setError('安全連線已失效，無法識別用戶身份。請重新發送密碼重設郵件。');
+            // 這是最終錯誤：如果連用戶 ID 都取不到，表示 Token 已經徹底失效
+            setError('安全連線中斷，無法識別用戶身份。請重新發送密碼重設郵件。');
+            // 再次鎖定表單
+            setPageActivated(false);
             return;
         }
 
-        // 使用 supabaseService (高權限) 進行密碼更新
+        // 2. 🎯 使用服務密鑰直接更新用戶密碼 (繞過 Auth Session 檢查)
         const { error: updateError } = await supabaseService.auth.admin.updateUserById(
             user.id,
             { password: newPassword }
@@ -81,15 +82,39 @@ const ResetPasswordPage = () => {
                 <form onSubmit={handlePasswordReset} className="auth-form">
                     
                     {/* 錯誤/成功訊息區 */}
-                    {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-                    {message && <p style={{ color: 'green', textAlign: 'center' }}>{message}</p>}
+                    {error && <p style={{ color: 'red', fontWeight: 'bold', textAlign: 'center' }}>{error}</p>}
+                    {message && <p style={{ color: 'green', fontWeight: 'bold', textAlign: 'center' }}>{message}</p>}
 
-                    {/* 🎯 關鍵邏輯：只在沒有錯誤時才顯示表單 */}
+                    {/* 關鍵：只有在沒有錯誤時才顯示表單，否則顯示錯誤訊息 */}
                     {!error ? (
                         <>
                             <p>請輸入您的新密碼。</p>
 
-                            {/* ... (輸入框部分保持不變) ... */}
+                            <div className="input-group">
+                                <label htmlFor="new-password">新密碼：</label>
+                                <input
+                                    id="new-password"
+                                    type="password"
+                                    required
+                                    placeholder="請輸入新密碼 (至少6個字元)"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    disabled={loading}
+                                />
+                            </div>
+                            
+                            <div className="input-group">
+                                <label htmlFor="confirm-password">確認密碼：</label>
+                                <input
+                                    id="confirm-password"
+                                    type="password"
+                                    required
+                                    placeholder="請再次輸入新密碼"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    disabled={loading}
+                                />
+                            </div>
                             
                             <button type="submit" disabled={loading}>
                                 {loading ? '正在重設...' : '確認重設密碼'}
@@ -97,7 +122,9 @@ const ResetPasswordPage = () => {
                         </>
                     ) : (
                          /* 顯示最終錯誤提示 */
-                        <p style={{color: 'red', fontWeight: 'bold'}}>請確認您是通過郵件連結訪問此頁面。</p>
+                         <p className="toggle-form-link" style={{marginTop: '20px', cursor: 'auto'}}>
+                            請確認您是通過郵件連結訪問此頁面。
+                        </p>
                     )}
                     
                     {/* 返回登入按鈕 */}
