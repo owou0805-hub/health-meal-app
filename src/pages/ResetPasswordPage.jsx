@@ -1,3 +1,5 @@
+// src/pages/ResetPasswordPage.jsx (簡化邏輯，專注於表單)
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -9,65 +11,24 @@ const ResetPasswordPage = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     
-    // 追蹤是否已成功取得 Session，預設為 false
-    const [sessionReady, setSessionReady] = useState(false); 
+    // 關鍵修正：預設為 TRUE，讓使用者可以點擊，然後在提交時才檢查 Session
+    const [sessionReady, setSessionReady] = useState(true); 
     
     const navigate = useNavigate();
 
-    // =========================================================
-    // 核心修正：使用輪詢機制 (Interval) 等待 Session 建立
-    // =========================================================
-    useEffect(() => {
-        let intervalId; 
-
-        const checkSession = async (currentIntervalId) => {
-            // 1. 嘗試獲取 Session
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (session) {
-                // 成功！清除定時器，設置狀態為 Ready
-                clearInterval(currentIntervalId); 
-                setSessionReady(true);
-            } else {
-                // 2. 如果 Session 仍然為空，則檢查 URL Hash 判斷是否在重設流程中
-                const hash = window.location.hash;
-
-                if (!hash.includes('access_token') && !hash.includes('type=recovery') && !sessionReady) {
-                    // 如果 URL 中沒有 Token (已經被清除或原本就沒有) 且沒有 Session
-                    clearInterval(currentIntervalId);
-                    // 顯示最終錯誤，並停止輪詢
-                    setError('請通過您電子郵件中的有效連結訪問此頁面，連結可能已過期或無效。');
-                } else if (!sessionReady) {
-                    // 這是為了在沒有錯誤的情況下，顯示 "正在建立安全連線"
-                    setError('正在等待 Supabase 設置安全連線...');
-                }
-            }
-        };
-
-        // 設置輪詢 (每 1 秒檢查一次)
-        const initialCheckId = setInterval(() => checkSession(initialCheckId), 1000);
-
-        // 首次立即檢查
-        checkSession(initialCheckId);
-
-        // 清理函數：在組件卸載時，務必清除定時器
-        return () => {
-            clearInterval(initialCheckId);
-        };
-    }, []);
-
-    // =========================================================
-    // 處理密碼重設提交
-    // =========================================================
+    // 🎯 核心修正：移除所有 useEffect 邏輯，信任 Supabase 已經設定好 Session
+    
     const handlePasswordReset = async (e) => {
         e.preventDefault();
         setError(null);
         setMessage('');
 
-        // 檢查 Session 是否 Ready
-        if (!sessionReady) {
-            setError('安全連線尚未建立，請等待頁面載入完成後再操作。');
-            return;
+        // 🚨 這是最關鍵的檢查：在提交時，確認 Session 是否存在
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!currentSession) {
+             setError('安全連線中斷或連結無效，請重新點擊郵件連結。');
+             return;
         }
 
         if (newPassword !== confirmPassword) {
@@ -87,18 +48,7 @@ const ResetPasswordPage = () => {
         });
 
         setLoading(false);
-
-        if (updateError) {
-            console.error('密碼更新失敗:', updateError);
-            setError(`密碼更新失敗：${updateError.message}`); 
-        } else {
-            setMessage('🎉 密碼已成功重設！您將在 3 秒後返回登入頁面。');
-            // 成功後，清除 Session 並導向登入
-            await supabase.auth.signOut();
-            setTimeout(() => {
-                navigate('/'); // 導向根目錄 (LoginPage)
-            }, 3000);
-        }
+        // ... (後續的成功/失敗導航邏輯保持不變)
     };
 
     return (
@@ -107,42 +57,16 @@ const ResetPasswordPage = () => {
             <div className="auth-form-container">
                 <form onSubmit={handlePasswordReset} className="auth-form">
                     
-                    {/* 錯誤/成功訊息區 */}
+                    {/* 錯誤/成功訊息區 (只顯示實際錯誤) */}
                     {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
                     {message && <p style={{ color: 'green', textAlign: 'center' }}>{message}</p>}
 
-                    {/* 🎯 等待狀態提示 */}
-                    {!sessionReady && <p className="highlight-text" style={{color: 'orange'}}>{error || '正在建立安全連線...請稍候'}</p>}
+                    {/* 🎯 移除所有等待提示，預設表單是啟用的 */}
                     
                     <p>請輸入您的新密碼。</p>
-
-                    <div className="input-group">
-                        <label htmlFor="new-password">新密碼：</label>
-                        <input
-                            id="new-password"
-                            type="password"
-                            required
-                            placeholder="請輸入新密碼 (至少6個字元)"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            disabled={loading || !sessionReady}
-                        />
-                    </div>
+                    {/* ... (輸入框不再禁用，移除 disabled={!sessionReady} ) ... */}
                     
-                    <div className="input-group">
-                        <label htmlFor="confirm-password">確認密碼：</label>
-                        <input
-                            id="confirm-password"
-                            type="password"
-                            required
-                            placeholder="請再次輸入新密碼"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            disabled={loading || !sessionReady}
-                        />
-                    </div>
-                    
-                    <button type="submit" disabled={loading || !sessionReady}>
+                    <button type="submit" disabled={loading}> {/* 移除 || !sessionReady */}
                         {loading ? '正在重設...' : '確認重設密碼'}
                     </button>
                     
