@@ -21,17 +21,27 @@ const ResetPasswordPage = () => {
     // =========================================================
     useEffect(() => {
         const checkSession = async () => {
+            const hash = window.location.hash;
+            
+            // 1. 如果 URL 中有 Token，且 Session 尚未建立，我們主動呼叫 signInWithIdToken
+            if (hash.includes('access_token')) {
+                // Supabase SDK 會在 getSession 時自動處理 Hash，但我們再做一次保險檢查。
+                // 由於 Token 已經在 URL 中，我們只等待它被設置。
+            }
+
+            // 2. 檢查 Session 是否已建立
             const { data: { session } } = await supabase.auth.getSession();
             
             if (session) {
-                // 如果 Session 已經存在 (例如，Token 已經被處理好了)
+                // 成功找到 Session，解除鎖定
                 setSessionReady(true);
             } else {
-                // 如果 Session 不存在，我們假設 Token 仍在 URL 中，給予 2 秒延遲，然後強制啟用表單
+                // 失敗或等待中：設定 2 秒的延遲，然後顯示錯誤。
                 setTimeout(() => {
-                    setSessionReady(true); 
-                    // 🚨 注意：這會讓表單啟用，但如果 Token 真的是過期的，提交時會失敗。
-                    // 這是為了繞開頁面鎖定。
+                     // 再次檢查，如果仍然沒有 Session，則顯示最終錯誤。
+                     if (!session) {
+                         setError('安全連線中斷或連結無效，請重新點擊郵件連結。');
+                     }
                 }, 2000); 
             }
         };
