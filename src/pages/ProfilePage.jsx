@@ -21,24 +21,35 @@ const ProfilePage = () => {
     // 從 Supabase 讀取用戶資料的函式
     const fetchProfile = async () => {
         setLoading(true);
-        // 由於 RLS 已經設定，supabase 會自動過濾出當前用戶的資料
+        // 獲取當前用戶 ID
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            // 如果用戶沒有登入，則無法載入 Profile，但這不應該在 LoggedInRoutes 中發生
+            setError('請先登入以檢視個人設定。');
+            setLoading(false);
+            return;
+        }
+        
+        // 【關鍵修正】：使用 eq('id', user.id) 精確篩選，而不是依賴 RLS 的自動篩選
         const { data, error } = await supabase
             .from('user_profiles')
             .select('*')
-            .single(); // 期望只返回一筆數據
+            .eq('id', user.id) // 🎯 修正點：只請求當前用戶的 Profile
+            .single(); 
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = 找不到行 (第一次登入)
+        if (error && error.code !== 'PGRST116') { // PGRST116 = 找不到行 (正常情況)
             console.error('Error fetching profile:', error);
-            setError('無法載入用戶資料。');
+            setError(`無法載入設定：${error.message}`);
         } else if (data) {
-            // 載入資料時，確保數組欄位不是 null
+            // 載入資料時，確保數組欄位非空
             setProfile({
                 ...data,
                 health_goals: data.health_goals || [], 
                 allergens: data.allergens || [],
             });
         } else {
-            // 用戶首次訪問，初始化 profile 狀態，確保數組是空的，而不是 null
+            // 用戶首次訪問
             setProfile({ 
                 health_goals: [], 
                 dietary_habit: DIET_OPTIONS[0], 
