@@ -365,11 +365,7 @@ button:hover {
 /* --- 響應式優化 (手機/平板) --- */
 /* 寬度小於 920px 時的特殊佈局 */
 @media (max-width: 920px) {
-    /* 【刪除或註釋】這段程式碼，讓 auto-fit 在此區間自由調整 */
-    /* .recipe-grid-container {
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 15px;
-    } */
+  
 }
 @media (max-width: 768px) {
     .hamburger-icon {
@@ -434,11 +430,7 @@ button:hover {
       padding: 1rem 0.5rem; 
     }
     /* 【手機版修正】：強制變為單欄 */
-    /* 【刪除或註釋】這段程式碼，讓 auto-fit 自動切換為單欄 */
-    /* .recipe-grid-container {
-        grid-template-columns: 1fr; 
-        gap: 15px; 
-    } */
+
     .recipe-list-section {
         /* 在手機上可以讓內容更寬一些 */
         padding: 0 0.5rem;
