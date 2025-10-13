@@ -174,26 +174,59 @@ const ProfilePage = () => {
 
                     
                     {/* 1. 健康目標 (多選標籤) */}
-                    <div className="input-group" style={{maxWidth: '800px'}}> {/* 增加 maxWidth 以容納雙排 */}
+                    <div className="input-group" style={{maxWidth: '800px'}}>
                         <label className="form-label" style={{marginBottom: '10px'}}>健康目標 (多選):</label>
-                        <div className="grid-button-group"> {/* 【關鍵修正】 */}
-                            {/* ... GOAL_OPTIONS.map() 保持不變 ... */}
+                        <div className="grid-button-group"> 
+                            {/* 🎯 恢復 map 循環 - 健康目標 */}
+                            {GOAL_OPTIONS.map(goal => (
+                                <button
+                                    key={goal}
+                                    type="button"
+                                    className={`filter-tag-button ${profile.health_goals.includes(goal) ? 'active' : ''}`}
+                                    onClick={() => handleArrayChange('health_goals', goal)}
+                                    disabled={saving}
+                                >
+                                    {goal}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
                     {/* 2. 飲食習慣 (單選標籤) */}
                     <div className="input-group" style={{maxWidth: '800px'}}>
                         <label className="form-label" style={{marginBottom: '10px'}}>飲食習慣 (單選):</label>
-                        <div className="grid-button-group"> {/* 【關鍵修正】 */}
-                            {/* ... DIET_OPTIONS.map() 保持不變 ... */}
+                        <div className="grid-button-group"> 
+                            {/* 🎯 恢復 map 循環 - 飲食習慣 */}
+                            {DIET_OPTIONS.map(diet => (
+                                <button
+                                    key={diet}
+                                    type="button"
+                                    className={`filter-tag-button ${profile.dietary_habit === diet ? 'active-meal-radio' : ''}`}
+                                    onClick={() => handleDietChange(diet)} 
+                                    disabled={saving}
+                                >
+                                    {diet}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
                     {/* 3. 過敏原 (多選標籤) */}
                     <div className="input-group" style={{maxWidth: '800px'}}>
                         <label className="form-label" style={{marginBottom: '10px'}}>排除過敏原 (多選):</label>
-                        <div className="grid-button-group"> {/* 【關鍵修正】 */}
-                            {/* ... ALLERGY_OPTIONS.map() 保持不變 ... */}
+                        <div className="grid-button-group"> 
+                            {/* 🎯 恢復 map 循環 - 過敏原 */}
+                            {ALLERGY_OPTIONS.map(allergen => (
+                                <button
+                                    key={allergen}
+                                    type="button"
+                                    className={`filter-tag-button ${profile.allergens.includes(allergen) ? 'active-allergy' : ''}`}
+                                    onClick={() => handleArrayChange('allergens', allergen)}
+                                    disabled={saving}
+                                >
+                                    {allergen}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
