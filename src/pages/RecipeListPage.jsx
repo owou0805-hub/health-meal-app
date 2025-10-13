@@ -148,7 +148,7 @@ const RecipeListPage = () => {
                             ))
                         ) : (
                             <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
-                                抱歉，沒有找到符合 **「{currentSearchTerm}」** 的食譜。
+                                抱歉，沒有找到符合 "「{currentSearchTerm}」" 的食譜。
                             </p>
                         )}
                     </div>
