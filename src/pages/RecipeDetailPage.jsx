@@ -161,20 +161,15 @@ const RecipeDetailPage = () => {
                     {/* 食材清單 */}
                     <div className="detail-card">
                         <h3 className="sub-heandline">所需食材</h3>
-                        {/* 🎯 修正: 使用 split(',') 分割食材字串，並去除大括號和空格 */}
-                        {typeof recipe.ingredients === 'string' && recipe.ingredients.trim() ? (
+                        {/* 🎯 最終修正：確保渲染的是一個有效陣列，即使是空陣列也能安全處理 */}
+                        {Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 ? (
                             <ul className="ingredient-list">
-                                {recipe.ingredients
-                                    .replace('{', '') // 移除開頭的 {
-                                    .replace('}', '') // 移除結尾的 }
-                                    .split(',')       // 核心：按逗號分割
-                                    .map((item, index) => (
-                                        // 確保項目不是空白並移除前後空格
-                                        item.trim() && <li key={index}>{item.trim()}</li>
-                                    ))}
+                                {recipe.ingredients.map((item, index) => (
+                                    // 由於資料庫傳輸的元素可能含有隱藏空格，我們用 trim() 清理
+                                    <li key={index}>{item ? item.trim() : ''}</li>
+                                ))}
                             </ul>
                         ) : (
-                             // 處理 ingredients 為陣列或無內容的情況
                             <p>沒有列出詳細食材。</p>
                         )}
                     </div>
