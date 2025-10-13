@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'; 
 import '../index.css'; 
+import useImageLoader from '../hooks/useImageLoader';
 import { supabase } from '../supabaseClient'; 
 
 // 函數：從陣列中隨機選取一個項目
@@ -26,7 +27,7 @@ const getSafeTags = (tags) => {
     return [];
 };
 
-// 篩選器的選項 (保持不動)
+// 篩選器的選項
 const MEAL_FILTERS = ['早餐', '午餐', '晚餐'];
 const ALLERGY_FILTERS = ['花生', '乳製品', '海鮮'];
 
@@ -53,6 +54,9 @@ const RecipeDrawPage = () => {
     const [selectedMeals, setSelectedMeals] = useState([]); 
     const [selectedAllergies, setSelectedAllergies] = useState([]); 
     
+    // 將 Hook 移到元件頂層
+    const currentImageUrlPath = currentRecipe?.image_url || '';
+    const { imageUrl: drawnImageUrl, loading: imageLoading } = useImageLoader(currentImageUrlPath);
     // 處理選單開關
     const toggleFilter = () => {
         setIsFilterOpen(!isFilterOpen);
@@ -74,9 +78,7 @@ const RecipeDrawPage = () => {
         }
     };
     
-    // =========================================================
-    // 核心變動 1：useEffect 處理資料庫載入
-    // =========================================================
+    //useEffect 處理資料庫載入
     useEffect(() => {
         const fetchRecipes = async () => {
             setLoadingData(true);
@@ -100,9 +102,7 @@ const RecipeDrawPage = () => {
         fetchRecipes();
     }, []); 
 
-    // =========================================================
-    // 核心變動 2：useEffect 處理 URL 搜尋
-    // =========================================================
+    // useEffect 處理 URL 搜尋
     useEffect(() => {
         if (loadingData) return; 
 
@@ -275,8 +275,7 @@ const RecipeDrawPage = () => {
                     {error && <p className="highlight-text" style={{ color: 'red' }}>{error}</p>}
                     
                     {currentRecipe ? (
-                        // 顯示結果卡片
-                        <Link 
+                       <Link 
                             to={`/recipe/${currentRecipe.id}`} 
                             className="drawn-card-link"
                             onClick={(e) => { 
@@ -284,22 +283,22 @@ const RecipeDrawPage = () => {
                             }}
                         >
                             <div className={`drawn-card ${loading ? 'shaking' : ''}`}>
+                                
+                                {/* 🎯 修正：使用 Hook 返回的 URL */}
+                                {imageLoading && <p>圖片載入中...</p>}
                                 <img 
-                                    src={currentRecipe.image_url || '/placeholder-recipe.jpg'} 
+                                    src={drawnImageUrl} 
                                     alt={currentRecipe.title} 
                                     className="recipe-card-img"
                                 />
-
                                 <h3>{currentRecipe.title}</h3>
                                 
-                                {/* 🎯 修正 Tags 顯示邏輯：使用 getSafeTags 輔助函數 */}
+                                {/* Tags 顯示邏輯 (保持不變) */}
                                 {(() => {
-                                    // 獲取 Tags 陣列，並將首字母大寫用於顯示 (美化)
                                     const safeTags = getSafeTags(currentRecipe.tags);
                                     const tagsForDisplay = safeTags.map(t => 
                                         t.charAt(0).toUpperCase() + t.slice(1)
                                     );
-
                                     return tagsForDisplay.length > 0 ? (
                                         <div className="recipe-card-tags" style={{ padding: '0 20px', justifyContent: 'center' }}>
                                             {tagsForDisplay.map((tag, index) => (
