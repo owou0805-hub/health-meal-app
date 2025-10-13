@@ -363,6 +363,14 @@ button:hover {
 }
 
 /* --- 響應式優化 (手機/平板) --- */
+/* 寬度小於 920px 時的特殊佈局 */
+@media (max-width: 920px) {
+    /* 讓網格從 4 欄切換為 2 欄 (在平板上可能更好看) */
+    .recipe-grid-container {
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 15px; /* 縮小間距 */
+    }
+}
 @media (max-width: 768px) {
     .hamburger-icon {
         display: flex; /* 在手機版顯示 */
@@ -713,7 +721,6 @@ button:hover {
     justify-content: center;
     text-align: center;
 }
-
 /*8. 食譜抽卡頁面樣式 (RecipeDrawPage)*/
 /* --- 圓形返回按鈕樣式 --- */
 .circular-back-button {
