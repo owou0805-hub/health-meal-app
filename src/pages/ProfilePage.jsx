@@ -10,7 +10,6 @@ const ALLERGY_OPTIONS = ['花生', '乳製品', '海鮮', '麩質', '堅果'];
 
 
 const ProfilePage = () => {
-    // 移除 username 相關狀態
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -21,26 +20,26 @@ const ProfilePage = () => {
     // 從 Supabase 讀取用戶資料的函式
     const fetchProfile = async () => {
         setLoading(true);
-        // 獲取當前用戶 ID
+        setError(null);
+        
         const { data: { user } } = await supabase.auth.getUser();
 
         if (!user) {
-            // 如果用戶沒有登入，則無法載入 Profile，但這不應該在 LoggedInRoutes 中發生
             setError('請先登入以檢視個人設定。');
             setLoading(false);
             return;
         }
         
-        // 【關鍵修正】：使用 eq('id', user.id) 精確篩選，而不是依賴 RLS 的自動篩選
-        const { data, error } = await supabase
+        // 【關鍵修正】：使用 eq('id', user.id) 精確篩選
+        const { data, error: fetchError } = await supabase
             .from('user_profiles')
             .select('*')
-            .eq('id', user.id) // 🎯 修正點：只請求當前用戶的 Profile
+            .eq('id', user.id) 
             .single(); 
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = 找不到行 (正常情況)
-            console.error('Error fetching profile:', error);
-            setError(`無法載入設定：${error.message}`);
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = 找不到行 (正常情況)
+            console.error('Error fetching profile:', fetchError);
+            setError(`無法載入設定：${fetchError.message}`);
         } else if (data) {
             // 載入資料時，確保數組欄位非空
             setProfile({
@@ -49,7 +48,7 @@ const ProfilePage = () => {
                 allergens: data.allergens || [],
             });
         } else {
-            // 用戶首次訪問
+            // 用戶首次訪問，初始化 profile 狀態
             setProfile({ 
                 health_goals: [], 
                 dietary_habit: DIET_OPTIONS[0], 
@@ -64,15 +63,13 @@ const ProfilePage = () => {
     }, []);
 
 
-    // 處理單選 (飲食習慣) 變更
+    // 🎯 修正：處理單選 (飲食習慣) 變更
     const handleDietChange = (diet) => {
         setProfile(prevProfile => ({ ...prevProfile, dietary_habit: diet }));
     };
 
+    // 🎯 修正後的數組 (多選) 變更函式 (解決按鈕不變色)
     const handleArrayChange = (name, tag) => {
-        // 確保 currentArray 即使是 null，也能安全地初始化為空陣列
-        const currentArray = profile[name] || []; 
-        
         // 使用 setProfile 的回調函數來確保基於最新的 profile 狀態進行操作
         setProfile(prevProfile => {
             const prevArray = prevProfile[name] || [];
@@ -82,17 +79,17 @@ const ProfilePage = () => {
                 // 移除標籤：使用 filter 創建一個新數組
                 newArray = prevArray.filter(t => t !== tag);
             } else {
-                // 新增標籤：使用 spread operator 創建一個新數組
-                newArray = [...prevArray, tag];
+                // 新增標籤：使用 slice() 和 spread 確保創建新數組
+                newArray = [...prevArray.slice(), tag]; 
             }
 
-            // 🎯 關鍵：返回一個新的 Profile 物件，確保 React 重新渲染
+            // 返回一個新的 Profile 物件，確保 React 重新渲染
             return { 
                 ...prevProfile, 
                 [name]: newArray 
             };
         });
-    }
+    };
 
 
     // 提交表單：執行 UPSERT (插入或更新)
@@ -113,7 +110,6 @@ const ProfilePage = () => {
 
         const profileData = {
             id: user.id, // RLS 核心
-            // 確保數據是乾淨的，即使 UI 狀態為 null (理論上不會)，也要傳遞空陣列
             health_goals: profile.health_goals || [], 
             dietary_habit: profile.dietary_habit,
             allergens: profile.allergens || [],
@@ -170,6 +166,7 @@ const ProfilePage = () => {
                                 <button
                                     key={goal}
                                     type="button"
+                                    // 判斷是否選中的邏輯是正確的
                                     className={`filter-tag-button ${profile.health_goals.includes(goal) ? 'active' : ''}`}
                                     onClick={() => handleArrayChange('health_goals', goal)}
                                     disabled={saving}
