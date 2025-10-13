@@ -69,27 +69,30 @@ const ProfilePage = () => {
         setProfile(prevProfile => ({ ...prevProfile, dietary_habit: diet }));
     };
 
-    // 🎯 修正後的數組 (多選) 變更函式 (解決按鈕不變色)
     const handleArrayChange = (name, tag) => {
-        // 使用 prevProfile 確保狀態更新基於最新值
+        // 確保 currentArray 即使是 null，也能安全地初始化為空陣列
+        const currentArray = profile[name] || []; 
+        
+        // 使用 setProfile 的回調函數來確保基於最新的 profile 狀態進行操作
         setProfile(prevProfile => {
-            const currentArray = prevProfile[name] || []; // 確保數組非空
-            
-            if (currentArray.includes(tag)) {
-                // 移除標籤
-                return { 
-                    ...prevProfile, 
-                    [name]: currentArray.filter(t => t !== tag) 
-                };
+            const prevArray = prevProfile[name] || [];
+            let newArray;
+
+            if (prevArray.includes(tag)) {
+                // 移除標籤：使用 filter 創建一個新數組
+                newArray = prevArray.filter(t => t !== tag);
             } else {
-                // 新增標籤
-                return { 
-                    ...prevProfile, 
-                    [name]: [...currentArray, tag] 
-                };
+                // 新增標籤：使用 spread operator 創建一個新數組
+                newArray = [...prevArray, tag];
             }
+
+            // 🎯 關鍵：返回一個新的 Profile 物件，確保 React 重新渲染
+            return { 
+                ...prevProfile, 
+                [name]: newArray 
+            };
         });
-    };
+    }
 
 
     // 提交表單：執行 UPSERT (插入或更新)
@@ -167,7 +170,6 @@ const ProfilePage = () => {
                                 <button
                                     key={goal}
                                     type="button"
-                                    // 判斷是否選中的邏輯是正確的
                                     className={`filter-tag-button ${profile.health_goals.includes(goal) ? 'active' : ''}`}
                                     onClick={() => handleArrayChange('health_goals', goal)}
                                     disabled={saving}
