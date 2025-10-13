@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import '../index.css';
+import RecipeCard from '../components/RecipeCard';
 import { supabase } from '../supabaseClient'; 
 
 const getSafeTags = (tags) => {
@@ -124,26 +125,8 @@ const RecipeListPage = () => {
                         {filteredRecipes.length > 0 ? (
                             
                             filteredRecipes.map((recipe) => (
-                                // 🎯 修正：直接返回 Link 元素
-                                <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="recipe-card-link">
-                                    <div className="recipe-card"> 
-                                        {/* 🎯 圖片修正：直接使用資料庫路徑 (圖片會消失，但結構正確) */}
-                                        <img 
-                                            src={recipe.image_url || '/placeholder-recipe.jpg'} 
-                                            alt={recipe.title} 
-                                            className="recipe-card-img" 
-                                        />
-                                        <h3>{recipe.title}</h3>
-                                        
-                                        {/* Tags 顯示區塊 */}
-                                        <div className="recipe-card-tags">
-                                            {/* 使用 getSafeTags 輔助函數 */}
-                                            {getSafeTags(recipe.tags).slice(0, 2).map((tag, index) => (
-                                                <span key={index} className="card-tag-pill">{tag}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </Link>
+                                //直接渲染 RecipeCard 元件
+                                <RecipeCard key={recipe.id} recipe={recipe} />
                             ))
                             
                         ) : (

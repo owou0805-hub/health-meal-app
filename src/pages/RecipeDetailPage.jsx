@@ -6,8 +6,8 @@ import { supabase } from '../supabaseClient';
 
 // 🎯 請將這裡替換成您中央圖片 Bucket 的名稱
 const ALL_IMAGES_BUCKET_NAME = 'all_images'; 
-// 圖片連結時效設定為 5 分鐘
-const SIGNED_URL_EXPIRY_SECONDS = 300; 
+// 圖片連結時效設定為 30 分鐘
+const SIGNED_URL_EXPIRY_SECONDS = 1800; 
 
 const RecipeDetailPage = () => {
     // 1. 從 URL 獲取食譜 ID
