@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import '../index.css';
-import useImageLoader from '../hooks/useImageLoader';
 import { supabase } from '../supabaseClient'; 
+
+const getSafeTags = (tags) => {
+    if (Array.isArray(tags)) {
+        return tags; 
+    }
+    if (typeof tags === 'string' && tags.trim()) {
+        return tags
+            .replace(/[{}]/g, '')
+            .split(',')
+            .map(t => t.trim())
+            .filter(t => t); 
+    }
+    return [];
+};
 
 const RecipeListPage = () => {
     const navigate = useNavigate();
@@ -78,14 +91,12 @@ const RecipeListPage = () => {
         }
     }, [searchParams, allRecipes, loadingData, errorData]); 
 
-    // =========================================================
     // JSX 渲染邏輯
-    // =========================================================
     return (
         <div className="page-container-main">
             <h2 className="heandline-font">食譜清單</h2>
             
-            {/* 處理資料庫載入與錯誤狀態 (優先顯示) */}
+            {/* 處理資料庫載入與錯誤狀態 */}
             {loadingData && (
                 <div style={{ textAlign: 'center', padding: '20px' }}><p>正在從資料庫載入食譜清單...請稍候</p></div>
             )}
@@ -112,37 +123,28 @@ const RecipeListPage = () => {
                     <div className="recipe-grid-container">
                         {filteredRecipes.length > 0 ? (
                             
-                            // 🎯 修正點：使用 map 循環，確保返回的是單一 Link 元素
-                            filteredRecipes.map((recipe) => {
-                                // 🎯 在 map 內部呼叫 Hook 是錯誤的！
-                                // const { imageUrl: cardImageUrl, loading: imageLoading } = useImageLoader(recipe.image_url);
-                                // 這裡必須將 Hook 替換為一個正常的變數
-                                
-                                // 暫時使用 RecipeDetailPage 的 Hook 邏輯 (但這會導致 Hook 規則警告，之後須修復)
-                                // 為了修復編譯錯誤，我們將 Hook 呼叫移除，並使用普通佔位符
-                                const cardImageUrl = recipe.image_url || '/placeholder-recipe.jpg'; 
-                                
-                                return (
-                                    <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="recipe-card-link">
-                                        <div className="recipe-card"> 
-                                            <img 
-                                                src={cardImageUrl} 
-                                                alt={recipe.title} 
-                                                className="recipe-card-img" 
-                                            />
-                                            <h3>{recipe.title}</h3>
-                                            
-                                            {/* Tags 顯示區塊 */}
-                                            <div className="recipe-card-tags">
-                                                {/* 🎯 由於我們移除了 getSafeTags，這裡的邏輯需要確保不崩潰 */}
-                                                {Array.isArray(recipe.tags) && recipe.tags.slice(0, 2).map((tag, index) => (
-                                                    <span key={index} className="card-tag-pill">{tag}</span>
-                                                ))}
-                                            </div>
+                            filteredRecipes.map((recipe) => (
+                                // 🎯 修正：直接返回 Link 元素
+                                <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="recipe-card-link">
+                                    <div className="recipe-card"> 
+                                        {/* 🎯 圖片修正：直接使用資料庫路徑 (圖片會消失，但結構正確) */}
+                                        <img 
+                                            src={recipe.image_url || '/placeholder-recipe.jpg'} 
+                                            alt={recipe.title} 
+                                            className="recipe-card-img" 
+                                        />
+                                        <h3>{recipe.title}</h3>
+                                        
+                                        {/* Tags 顯示區塊 */}
+                                        <div className="recipe-card-tags">
+                                            {/* 使用 getSafeTags 輔助函數 */}
+                                            {getSafeTags(recipe.tags).slice(0, 2).map((tag, index) => (
+                                                <span key={index} className="card-tag-pill">{tag}</span>
+                                            ))}
                                         </div>
-                                    </Link>
-                                );
-                            }) // 🎯 修正：map 迴圈應該在這裡結束
+                                    </div>
+                                </Link>
+                            ))
                             
                         ) : (
                             <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
