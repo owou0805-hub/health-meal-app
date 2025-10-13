@@ -673,6 +673,46 @@ button:hover {
 .filter-tag-button:hover {
     background-color: #e0e0e0;
 }
+/* Profile Page 專屬樣式修正 */
+/* 確保標題和內容區塊置中 */
+.input-group {
+    /* 保持原有樣式，但確保其自身可以置中 */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 核心：讓標題和按鈕容器在父容器中置中 */
+    width: 100%;
+}
+
+.form-label {
+    /* 確保標題本身可以置中 */
+    text-align: center;
+    width: 100%;
+}
+
+/* 網格按鈕容器 - 相同大小雙排對齊 */
+.grid-button-group {
+    display: grid;
+    /* 讓容器根據內容自動生成欄位，每欄最小寬度為 150px */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+    gap: 10px; /* 按鈕之間的間距 */
+    width: 100%; /* 佔滿 input-group 的寬度 */
+    
+    /* 確保網格整體在頁面中置中 */
+    justify-content: center; 
+}
+
+/* 讓按鈕大小固定並居中 */
+.grid-button-group .filter-tag-button {
+    /* 【關鍵修正】：強制讓所有按鈕擁有相同高度和最小寬度 */
+    height: 40px; 
+    min-width: 150px; 
+    
+    /* 使用 Flexbox 確保按鈕內的文字垂直置中 */
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
 
 /*8. 食譜抽卡頁面樣式 (RecipeDrawPage)*/
 /* --- 圓形返回按鈕樣式 --- */

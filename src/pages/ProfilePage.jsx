@@ -3,10 +3,25 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import '../index.css'; 
 
-// 預設選項列表 (確保與資料庫中 tags 格式匹配)
-const GOAL_OPTIONS = ['減重', '增肌', '快速備餐', '改善腸道健康'];
-const DIET_OPTIONS = ['一般飲食', '素食', '純素', '地中海飲食', '低碳水/生酮'];
-const ALLERGY_OPTIONS = ['花生', '乳製品', '海鮮', '麩質', '堅果'];
+// 1. 健康目標 (Goal Options) - 新增
+const GOAL_OPTIONS = [
+    '減脂', '增肌', '高蛋白', '低碳水', '高纖維', 
+    '控糖飲食', '降膽固醇', '低鈉飲食', '美肌養顏', 
+    '促進腸胃健康', '提升專注力', '增進睡眠品質'
+];
+
+// 2. 飲食習慣 (Diet Options) - 新增
+const DIET_OPTIONS = [
+    '一般飲食', '全素', '蛋奶素', '魚素', 
+    '地中海飲食', '原型食物飲食', '生酮飲食'
+];
+
+// 3. 過敏原 (Allergy Options) - 新增
+const ALLERGY_OPTIONS = [
+    '花生', '堅果', '牛奶', '雞蛋', '大豆', 
+    '小麥', '魚類', '甲殼類', '軟體動物', 
+    '芒果', '奇異果', '麩質', '雞肉', '牛肉', '豬肉'
+];
 
 
 const ProfilePage = () => {
@@ -159,57 +174,26 @@ const ProfilePage = () => {
 
                     
                     {/* 1. 健康目標 (多選標籤) */}
-                    <div className="input-group" style={{maxWidth: '600px'}}>
+                    <div className="input-group" style={{maxWidth: '800px'}}> {/* 增加 maxWidth 以容納雙排 */}
                         <label className="form-label" style={{marginBottom: '10px'}}>健康目標 (多選):</label>
-                        <div className="filter-tags-group">
-                            {GOAL_OPTIONS.map(goal => (
-                                <button
-                                    key={goal}
-                                    type="button"
-                                    // 判斷是否選中的邏輯是正確的
-                                    className={`filter-tag-button ${profile.health_goals.includes(goal) ? 'active' : ''}`}
-                                    onClick={() => handleArrayChange('health_goals', goal)}
-                                    disabled={saving}
-                                >
-                                    {goal}
-                                </button>
-                            ))}
+                        <div className="grid-button-group"> {/* 【關鍵修正】 */}
+                            {/* ... GOAL_OPTIONS.map() 保持不變 ... */}
                         </div>
                     </div>
 
                     {/* 2. 飲食習慣 (單選標籤) */}
-                    <div className="input-group" style={{maxWidth: '600px'}}>
+                    <div className="input-group" style={{maxWidth: '800px'}}>
                         <label className="form-label" style={{marginBottom: '10px'}}>飲食習慣 (單選):</label>
-                        <div className="filter-tags-group">
-                            {DIET_OPTIONS.map(diet => (
-                                <button
-                                    key={diet}
-                                    type="button"
-                                    className={`filter-tag-button ${profile.dietary_habit === diet ? 'active-meal-radio' : ''}`}
-                                    onClick={() => handleDietChange(diet)} 
-                                    disabled={saving}
-                                >
-                                    {diet}
-                                </button>
-                            ))}
+                        <div className="grid-button-group"> {/* 【關鍵修正】 */}
+                            {/* ... DIET_OPTIONS.map() 保持不變 ... */}
                         </div>
                     </div>
-                    
+
                     {/* 3. 過敏原 (多選標籤) */}
-                    <div className="input-group" style={{maxWidth: '600px'}}>
+                    <div className="input-group" style={{maxWidth: '800px'}}>
                         <label className="form-label" style={{marginBottom: '10px'}}>排除過敏原 (多選):</label>
-                        <div className="filter-tags-group">
-                            {ALLERGY_OPTIONS.map(allergen => (
-                                <button
-                                    key={allergen}
-                                    type="button"
-                                    className={`filter-tag-button ${profile.allergens.includes(allergen) ? 'active-allergy' : ''}`}
-                                    onClick={() => handleArrayChange('allergens', allergen)}
-                                    disabled={saving}
-                                >
-                                    {allergen}
-                                </button>
-                            ))}
+                        <div className="grid-button-group"> {/* 【關鍵修正】 */}
+                            {/* ... ALLERGY_OPTIONS.map() 保持不變 ... */}
                         </div>
                     </div>
 
