@@ -566,6 +566,35 @@ button:hover {
     margin-top: 0;
     font-size: 1.2rem;
 }
+/* --- Recipe Detail Page 專屬 Meta 資訊樣式 --- */
+/* 描述行樣式 (置中) */
+.recipe-description-line {
+    text-align: center; /* 核心：文字水平置中 */
+    font-size: 1.1rem;
+    color: #555;
+    margin: 10px auto 15px auto; /* 上下邊距和水平置中 */
+    max-width: 800px; /* 限制描述寬度，避免過長 */
+    padding: 0 1rem;
+}
+
+/* 保持時間/熱量行置中 */
+.recipe-meta-line {
+    display: flex;
+    justify-content: center; /* 核心：水平置中 */
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.meta-info-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    /* 使用您的主題色 */
+    background-color: var(--medium-background); 
+    color: var(--font-color-dark);
+}
 
 /* --- 收藏按鈕樣式 --- */
 
@@ -757,9 +786,7 @@ button:hover {
     text-align: center;
 }
 /*8. 食譜抽卡頁面樣式 (RecipeDrawPage)*/
-/* --- 圓形返回按鈕樣式 --- */
 .circular-back-button {
-    /* 1. 設置基本尺寸和形狀 */
     display: flex; /* 使用 flexbox 居中箭頭 */
     align-items: center;
     justify-content: center;
@@ -769,14 +796,14 @@ button:hover {
     border-radius: 50%; /* 關鍵：使邊框變成圓形 */
     
     /* 2. 設置背景和箭頭顏色 */
-    background-color: #648a80;
+    background-color: #8a876458;
     color: white;           
     border: none;
     cursor: pointer; 
     
     /* 3. 設置箭頭樣式 */
     font-size: 1.5rem; /* 箭頭大小 */
-    font-weight: 90;  /* 加粗 */
+    font-weight: 700;  /* 加粗 */
     transition: background-color 0.2s ease, transform 0.1s ease;
     
     /* 4. 調整定位 */
@@ -784,7 +811,7 @@ button:hover {
 }
 
 .circular-back-button:hover {
-    background-color: #2c7563; /* 滑鼠懸停時顏色變深 */
+    background-color: #a4923ac4; /* 滑鼠懸停時顏色變深 */
     transform: scale(1.05); /* 增加輕微的縮放效果 */
 }
 /* 食譜抽卡頁面內容容器 */

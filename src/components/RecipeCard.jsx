@@ -122,7 +122,7 @@ const RecipeCard = ({ recipe }) => {
                         aria-label="收藏" 
                         className={isFavorited ? 'heart-filled' : 'heart-empty'}
                     >
-                        {isFavorited ? '❤️' : '♡'}
+                        {isFavorited ? '❤︎' : '♡'}
                     </span>
                 </button>
                 
