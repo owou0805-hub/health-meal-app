@@ -11,27 +11,37 @@ const useFavoriteStatus = (recipeId) => {
     const [isFavorited, setIsFavorited] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // 檢查收藏狀態
+    // 檢查收藏狀態 (函式定義在 Hook 內部)
     const checkFavorite = async () => {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return; // 未登入則跳過
+        if (!user) {
+            setIsFavorited(false);
+            setLoading(false); 
+            return;
+        }
 
-        // 查詢 user_favorites 表，看是否有該用戶和該食譜的記錄
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('user_favorites')
             .select('id')
             .eq('user_id', user.id)
             .eq('recipe_id', recipeId)
-            .maybeSingle(); // 只返回一筆或 null
+            .maybeSingle(); 
 
         setIsFavorited(!!data);
-        setLoading(false);
+        setLoading(false); 
     };
 
-    // 處理收藏/取消收藏
+    // 🎯 【關鍵修正 1】：useEffect 必須在 Hook 的頂層被呼叫
+    useEffect(() => {
+        checkFavorite();
+        // 🚨 僅在 recipeId 改變時才重新檢查
+    }, [recipeId]); 
+
+    
+    // 處理收藏/取消收藏 (函式定義在 Hook 內部)
     const toggleFavorite = async (e) => {
-        e.preventDefault(); // 阻止 Link 跳轉到詳情頁
-        e.stopPropagation(); // 阻止事件冒泡
+        e.preventDefault(); 
+        e.stopPropagation(); 
 
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -39,10 +49,11 @@ const useFavoriteStatus = (recipeId) => {
             return;
         }
 
-        setLoading(true);
+        // 🎯 執行狀態更新前，先設為載入中，避免重複點擊
+        setLoading(true); 
 
         if (isFavorited) {
-            // 取消收藏
+            // 取消收藏：刪除記錄
             const { error } = await supabase
                 .from('user_favorites')
                 .delete()
@@ -50,32 +61,27 @@ const useFavoriteStatus = (recipeId) => {
                 .eq('recipe_id', recipeId);
             if (error) { 
                 console.error("取消收藏失敗:", error);
-            }    
-            setIsFavorited(false);
-
+            } 
+            setIsFavorited(false); // 快速更新 UI
         } else {
-            // 新增收藏
-            const { error } = await supabase // 🎯 確保有接收錯誤物件
+            // 新增收藏：插入記錄
+            const { error } = await supabase
                 .from('user_favorites')
                 .insert([{ user_id: user.id, recipe_id: recipeId }]);
             
             if (error) {
                 console.error("新增收藏失敗:", error);
-                // 可能是重複收藏錯誤，需要額外處理，但 RLS 失敗也會報錯
+                // 可能是重複收藏錯誤
             }
-            // 狀態將在 checkFavorite 重新運行後更新，但我們在這裡手動更新以求最快反應
-            setIsFavorited(true);
+            setIsFavorited(true); // 快速更新 UI
         }
         
-        // 🚨 關鍵：收藏後重新檢查狀態，確保數據同步
-        await checkFavorite();
-        setLoading(false);
+        // 🎯 修正：完成操作後，重新檢查狀態確保同步，然後解除載入中狀態
+        await checkFavorite(); 
+        setLoading(false); 
     };
     
-    useEffect(() => {
-        checkFavorite();
-    }, [recipeId]); 
-
+    // 返回 Hook 的狀態和函式
     return { isFavorited, toggleFavorite, loading };
 };
 
