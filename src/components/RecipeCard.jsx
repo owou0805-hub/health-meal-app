@@ -42,21 +42,33 @@ const useFavoriteStatus = (recipeId) => {
         setLoading(true);
 
         if (isFavorited) {
-            // 取消收藏：刪除記錄
-            await supabase
+            // 取消收藏
+            const { error } = await supabase
                 .from('user_favorites')
                 .delete()
                 .eq('user_id', user.id)
                 .eq('recipe_id', recipeId);
+            if (error) { 
+                console.error("取消收藏失敗:", error);
+            }    
             setIsFavorited(false);
 
         } else {
-            // 新增收藏：插入記錄
-            await supabase
+            // 新增收藏
+            const { error } = await supabase // 🎯 確保有接收錯誤物件
                 .from('user_favorites')
                 .insert([{ user_id: user.id, recipe_id: recipeId }]);
+            
+            if (error) {
+                console.error("新增收藏失敗:", error);
+                // 可能是重複收藏錯誤，需要額外處理，但 RLS 失敗也會報錯
+            }
+            // 狀態將在 checkFavorite 重新運行後更新，但我們在這裡手動更新以求最快反應
             setIsFavorited(true);
         }
+        
+        // 🚨 關鍵：收藏後重新檢查狀態，確保數據同步
+        await checkFavorite();
         setLoading(false);
     };
     
