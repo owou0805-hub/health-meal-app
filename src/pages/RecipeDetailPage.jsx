@@ -124,25 +124,23 @@ const RecipeDetailPage = () => {
                 onClick={() => navigate(-1)} 
                 className="circular-back-button"
             >
-                &larr;
+                🢀
             </button>
             
             <h1 className="heandline-font">{recipe.title}</h1>
-            
-            {/* 標籤/時間/熱量資訊 */}
-            <div className="recipe-meta-tags">
-                {Array.isArray(recipe.tags) && recipe.tags.map((tag, index) => (
-                    <span key={index} className="tag-pill">{tag}</span>
-                ))}
+
+            {/* 🎯 【修正】：時間/熱量行 - 獨立一行，並置中 */}
+            <div className="recipe-meta-line">
                 {recipe.duration_min && (
-                    <span className="tag-pill meta-info">🕑 {recipe.duration_min} 分鐘</span>
+                    <span className="meta-info-pill">🕑 {recipe.duration_min} 分鐘</span>
                 )}
                 {recipe.calories && (
-                    <span className="tag-pill meta-info">🔥 {recipe.calories} kcal</span>
+                    <span className="meta-info-pill">🔥 {recipe.calories} kcal</span>
                 )}
             </div>
-
-            <div className="recipe-content-grid">
+            
+            {/* 保持與圖片/內容區塊的間隔 */}
+            <div className="recipe-content-grid" style={{ marginTop: '25px' }}>
                 
                 {/* 左側：圖片與簡介 */}
                 <div className="recipe-image-section">
