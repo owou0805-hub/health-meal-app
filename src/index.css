@@ -576,28 +576,29 @@ button:hover {
 
 .favorite-button {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 30px;
+    right: 30px;
     
-    background: rgba(255, 255, 255, 0.8); /* 半透明背景 */
+    background: rgba(255, 255, 255, 0.541); /* 半透明背景 */
     border: none;
     border-radius: 50%; /* 圓形按鈕 */
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 60px;
     cursor: pointer;
     z-index: 5; /* 確保它在卡片內容之上 */
-    transition: transform 0.1s;
+    transition: transform 0.1s, background-color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .favorite-button:hover {
+    background: rgba(125, 157, 156, 0.5); 
     transform: scale(1.1);
 }
 
 .heart-empty, .heart-filled {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
 }
 
 .heart-empty {
@@ -605,7 +606,7 @@ button:hover {
 }
 
 .heart-filled {
-    color: #dc3545; /* 實心愛心是紅色 */
+    color: #b43c48; /* 實心愛心是紅色 */
 }
 
 /*篩選樣式表 */
