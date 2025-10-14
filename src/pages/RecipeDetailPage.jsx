@@ -124,7 +124,7 @@ const RecipeDetailPage = () => {
                 onClick={() => navigate(-1)} 
                 className="circular-back-button"
             >
-                🢀
+                &#x25C0;
             </button>
             
             <h1 className="heandline-font">{recipe.title}</h1>
