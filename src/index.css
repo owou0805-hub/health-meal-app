@@ -567,6 +567,47 @@ button:hover {
     font-size: 1.2rem;
 }
 
+/* --- 收藏按鈕樣式 --- */
+
+.recipe-card {
+    position: relative; /* 確保子元素 favorite-button 可以絕對定位 */
+    /* ... 保持原有樣式 ... */
+}
+
+.favorite-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    
+    background: rgba(255, 255, 255, 0.8); /* 半透明背景 */
+    border: none;
+    border-radius: 50%; /* 圓形按鈕 */
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    z-index: 5; /* 確保它在卡片內容之上 */
+    transition: transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorite-button:hover {
+    transform: scale(1.1);
+}
+
+.heart-empty, .heart-filled {
+    font-size: 1.2rem;
+}
+
+.heart-empty {
+    color: #333; /* 空心愛心是深色 */
+}
+
+.heart-filled {
+    color: #dc3545; /* 實心愛心是紅色 */
+}
+
 /*篩選樣式表 */
 
 .filter-menu-float-container {
