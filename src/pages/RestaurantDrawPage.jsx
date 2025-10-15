@@ -114,123 +114,125 @@ const RestaurantDrawPage = () => {
     };
 
     return (
-        <div className="recipe-draw-page-wrapper">
+        <div className="page-container-main"> 
+            <div className="recipe-draw-page-wrapper">
 
-            {/* 處理資料庫載入與錯誤狀態 */}
-            {loadingData && (
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                    <p>正在從資料庫載入餐廳資料...請稍候</p>
-                </div>
-            )}
-            
-            {errorData && (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
-                    <p>⚠️ 資料載入失敗: {errorData}</p>
-                </div>
-            )}
-
-            {/* 只有在資料載入完成且沒有錯誤時才顯示主要內容 */}
-            {(!loadingData && !errorData) && (
-            <div className="recipe-draw-page-content content-relative"> 
+                {/* 處理資料庫載入與錯誤狀態 */}
+                {loadingData && (
+                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                        <p>正在從資料庫載入餐廳資料...請稍候</p>
+                    </div>
+                )}
                 
-                <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
-                    <h2 className="heandline-font">輕食餐廳抽卡：「今天外食吃什麼？」</h2>
-                    <p>選擇地區與類型，讓系統為您隨機推薦一間健康輕食餐廳！</p>
+                {errorData && (
+                    <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
+                        <p>⚠️ 資料載入失敗: {errorData}</p>
+                    </div>
+                )}
 
-                    {/* 篩選選單區塊 - 浮動右側 */}
-                    <div className="filter-menu-float-container filter-right-side"> 
-                        <button 
-                            onClick={toggleFilter} 
-                            className="filter-toggle-button filter-icon-button" 
-                        >
-                            ⚙
-                        </button>
+                {/* 只有在資料載入完成且沒有錯誤時才顯示主要內容 */}
+                {(!loadingData && !errorData) && (
+                <div className="recipe-draw-page-content content-relative"> 
+                    
+                    <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
+                        <h2 className="heandline-font">輕食餐廳抽卡：「今天外食吃什麼？」</h2>
+                        <p>選擇地區與類型，讓系統為您隨機推薦一間健康輕食餐廳！</p>
 
-                        {isFilterOpen && (
-                            <div className="filter-options-panel filter-dropdown-float filter-dropdown-right"> 
-                                {/* 地區篩選 - 單選 */}
-                                <h4 className="filter-group-title">地區 (台灣台中)</h4> 
-                                <div className="filter-tags-group filter-radio-group">
-                                    {LOCATION_FILTERS.map(tag => (
-                                        <button
-                                            key={tag}
-                                            className={`filter-tag-button ${selectedLocation === tag ? 'active-meal-radio' : ''}`}
-                                            onClick={() => handleFilterClick('location', tag)}
-                                            disabled={loading}
-                                        >
-                                            {tag}
-                                        </button>
-                                    ))}
+                        {/* 篩選選單區塊 - 浮動右側 */}
+                        <div className="filter-menu-float-container filter-right-side"> 
+                            <button 
+                                onClick={toggleFilter} 
+                                className="filter-toggle-button filter-icon-button" 
+                            >
+                                ⚙
+                            </button>
+
+                            {isFilterOpen && (
+                                <div className="filter-options-panel filter-dropdown-float filter-dropdown-right"> 
+                                    {/* 地區篩選 - 單選 */}
+                                    <h4 className="filter-group-title">地區 (台灣台中)</h4> 
+                                    <div className="filter-tags-group filter-radio-group">
+                                        {LOCATION_FILTERS.map(tag => (
+                                            <button
+                                                key={tag}
+                                                className={`filter-tag-button ${selectedLocation === tag ? 'active-meal-radio' : ''}`}
+                                                onClick={() => handleFilterClick('location', tag)}
+                                                disabled={loading}
+                                            >
+                                                {tag}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* 類型篩選 - 單選 */}
+                                    <h4 className="filter-group-title">餐點類型</h4>
+                                    <div className="filter-tags-group filter-radio-group">
+                                        {TYPE_FILTERS.map(tag => (
+                                            <button
+                                                key={tag}
+                                                className={`filter-tag-button ${selectedType === tag ? 'active-meal-radio' : ''}`}
+                                                onClick={() => handleFilterClick('type', tag)}
+                                                disabled={loading}
+                                            >
+                                                {tag}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* 抽卡與結果區塊 - 置中容器 */}
+                    <div className="draw-area">
+                        {/* 抽卡按鈕 */}
+                        <button 
+                            onClick={drawNewRestaurant} 
+                            disabled={loading || !selectedLocation || !selectedType}
+                            className="draw-button" 
+                        >
+                            {loading ? '正在搜尋推薦中...' : '抽出餐廳！'}
+                        </button>
+                        
+                        {/* 優先顯示錯誤訊息 */}
+                        {error && <p className="highlight-text" style={{ color: 'red' }}>{error}</p>}
+                        
+                        {currentRestaurant ? (
+                            // 顯示結果卡片
+                            <div className="drawn-card-link" style={{ cursor: 'default' }}>
+                                <div className={`drawn-card ${loading ? 'shaking' : ''}`} style={{maxWidth: '400px'}}>
 
-                                {/* 類型篩選 - 單選 */}
-                                <h4 className="filter-group-title">餐點類型</h4>
-                                <div className="filter-tags-group filter-radio-group">
-                                    {TYPE_FILTERS.map(tag => (
-                                        <button
-                                            key={tag}
-                                            className={`filter-tag-button ${selectedType === tag ? 'active-meal-radio' : ''}`}
-                                            onClick={() => handleFilterClick('type', tag)}
-                                            disabled={loading}
+                                    <h3>🍴 {currentRestaurant.name}</h3>
+                                    <p className="highlight-text" style={{color: 'green', fontSize: '1.1em'}}>
+                                        {currentRestaurant.rating} ⭐ 
+                                    </p>
+                                    
+                                    <p style={{fontSize: '0.9em', color: '#666'}}>
+                                        **地址：** {currentRestaurant.address}
+                                    </p>
+                                    
+                                    {/* 地圖連結 (使用修正後的 map_url 欄位) */}
+                                    {currentRestaurant.map_url && ( 
+                                        <a 
+                                            href={currentRestaurant.map_url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="toggle-form-link" 
+                                            style={{ marginTop: '0.8rem', display: 'inline-block', fontWeight: 'bold' }}
                                         >
-                                            {tag}
-                                        </button>
-                                    ))}
+                                            在 Google 地圖上導航 »
+                                        </a>
+                                    )}
                                 </div>
                             </div>
+                        ) : (
+                            // 首次載入或沒有結果時的提示
+                            (!error && !loading) && <p>點擊「抽出餐廳！」按鈕，開始尋找您的健康午餐。</p>
                         )}
                     </div>
                 </div>
-                
-                {/* 抽卡與結果區塊 - 置中容器 */}
-                <div className="draw-area">
-                    {/* 抽卡按鈕 */}
-                    <button 
-                        onClick={drawNewRestaurant} 
-                        disabled={loading || !selectedLocation || !selectedType}
-                        className="draw-button" 
-                    >
-                        {loading ? '正在搜尋推薦中...' : '抽出餐廳！'}
-                    </button>
-                    
-                    {/* 優先顯示錯誤訊息 */}
-                    {error && <p className="highlight-text" style={{ color: 'red' }}>{error}</p>}
-                    
-                    {currentRestaurant ? (
-                        // 顯示結果卡片
-                        <div className="drawn-card-link" style={{ cursor: 'default' }}>
-                            <div className={`drawn-card ${loading ? 'shaking' : ''}`} style={{maxWidth: '400px'}}>
-
-                                <h3>🍴 {currentRestaurant.name}</h3>
-                                <p className="highlight-text" style={{color: 'green', fontSize: '1.1em'}}>
-                                    {currentRestaurant.rating} ⭐ 
-                                </p>
-                                
-                                <p style={{fontSize: '0.9em', color: '#666'}}>
-                                    **地址：** {currentRestaurant.address}
-                                </p>
-                                
-                                {/* 地圖連結 (使用修正後的 map_url 欄位) */}
-                                {currentRestaurant.map_url && ( 
-                                    <a 
-                                        href={currentRestaurant.map_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer" 
-                                        className="toggle-form-link" 
-                                        style={{ marginTop: '0.8rem', display: 'inline-block', fontWeight: 'bold' }}
-                                    >
-                                        在 Google 地圖上導航 »
-                                    </a>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        // 首次載入或沒有結果時的提示
-                        (!error && !loading) && <p>點擊「抽出餐廳！」按鈕，開始尋找您的健康午餐。</p>
-                    )}
-                </div>
+                )}
             </div>
-            )}
         </div>
     );
 }
