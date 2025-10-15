@@ -82,21 +82,23 @@ p {
 }
 
 .navbar-auth {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--medium-background);
-  /* 關鍵修正：將左右 padding 從 2rem 減少到 0，讓 navbar-auth 內容由 navbar-auth-content 統一管理 */
-  padding: 1rem 0; 
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--medium-background);
+    /* 🎯 確保這裡的垂直 padding 存在，左右 padding 已經在 content 裡了 */
+    padding: 1rem 0; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100vw; /* 保持滿版寬度 */
 }
+
 .navbar-auth-content {
-    /* 讓 Logo 內容置中於 960px 的範圍內 */
     max-width: 960px;
     width: 100%;
     display: flex;
-    justify-content: center; /* 讓 Logo 保持水平置中 */
+    justify-content: center;
+    /* 【關鍵修正】：為內容區塊增加左右內邊距 */
+    padding: 0 2rem; 
 }
 
 .page-container-auth, .page-container-main {
@@ -171,13 +173,13 @@ button:hover {
 
 /*5. 已登入佈局的樣式 (MainLayout)*/
 .main-layout {
-  display: flex;
-  flex-direction: column;
-  align-items: center; 
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
-  
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    /* 保持隱藏水平捲軸，但確保不會干擾 width: 100% */
+    overflow-x: hidden !important; 
+    align-items: center;
 }
 /* 導覽列連結的基礎樣式 */
 .navbar-links a {
@@ -206,23 +208,35 @@ button:hover {
 }
 .navbar-main {
   /* 確保連結和 Logo 分居兩側，但不會被擠壓 */
-  display: flex;
-  justify-content: space-between; 
-  align-items: center;
-  background-color: var(--medium-background);
-  padding: 1rem 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative; /* 確保選單可以相對於導覽列定位 */
-  z-index: 1001;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    background-color: var(--medium-background);
+    padding: 1rem 0 !important;
+    width: 100%; 
+    z-index: 1001;
 }
 
 /* 導覽列連結群組 (電腦版樣式) */
 .navbar-links {
-  display: flex; /* 電腦版：水平排列 */
-  gap: 0.7rem; /*按鈕間隔*/
-  align-items: center;
+  display: flex; 
+    gap: 0.7rem; 
+    align-items: center;
+    margin: 0;
+    padding: 0;
 }
-
+/* 🎯 確保登出按鈕作為最後一個項目不會被擠壓 */
+.navbar-links button {
+    margin-left: 1rem;
+    margin-right: 3rem; 
+}
+/*電腦版 LOGO */
+.navbar-logo {
+    display: flex !important; 
+    align-items: center;
+    margin-left: 2rem !important; 
+    padding: 0; 
+}
 /* 主頁搜尋欄位樣式 */
 /* 搜尋表單容器 */
 .main-search-bar {
@@ -369,9 +383,13 @@ button:hover {
   
 }
 @media (max-width: 768px) {
+    .navbar-main {
+        padding: 1rem 3rem !important; 
+    }
     .hamburger-icon {
         display: flex; /* 在手機版顯示 */
-        
+        position: absolute;
+        right: 3rem;
     }
     /*  X符號加粗 */
     .close-icon {
@@ -411,7 +429,15 @@ button:hover {
     }
     
     .logo-img {
-        height: 100px;
+        height: 160px;
+        width: auto;
+    }
+    .navbar-logo {
+        /* 【關鍵修正】：使用 Flex 確保內容對齊，並接受 Margin */
+        display: flex !important; 
+        align-items: center;
+        margin-left: 2rem !important; 
+        padding: 0;  
     }
     /* 導覽列容器：保持 1rem 垂直間距，但左右間距為 0 */
     .navbar-auth {
@@ -989,10 +1015,9 @@ textarea {
 /* --- 列表樣式優化 --- */
 
 .ingredient-list, .instruction-list {
-    padding-left: 0px; /* 確保列表項目有適當縮排 */
-    margin: 0;
-    max-width: fit-content;
-    padding-left: 20px; 
+    padding-left: 0; 
+    margin: 0 auto;
+    width: fit-content; 
 }
 
 .ingredient-list li, .instruction-list li {
