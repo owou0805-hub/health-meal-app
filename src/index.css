@@ -173,6 +173,7 @@ button:hover {
 .main-layout {
   display: flex;
   flex-direction: column;
+  align-items: center; 
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
@@ -642,58 +643,64 @@ button:hover {
 
 .filter-menu-float-container {
     position: absolute; 
-    top: 0px;       /* 距離 content 頂部 0px */
-    z-index: 100;    
+    top: 20px;
+    z-index: 100; 
+    width: auto;
+    text-align: initial; 
+    margin: 0 
 }
 
 .filter-menu-float-container.filter-right-side {
-    left: auto; /* 取消左側定位 */
-    right: 20px; /* 【修正】定位在右側 20px */
+    left: auto; 
+    right: 20px;
+    display: block;
+    justify-content: initial; 
 }
 
 /* 圓形按鈕樣式 */
 .filter-toggle-button.filter-icon-button {
-    width: 45px;
-    height: 45px;
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
     padding: 0; 
     border-radius: 50%; 
-    font-size: 1.2em; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #368d77; /* 篩選鈕顏色 */
-    color: white; 
+    font-size: 1.5em; 
+    background-color: rgba(100, 138, 128, 0.35);
+    color: var(--font-color-dark); /* 深色圖標 */
     border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: transform 0.3s, background-color 0.2s;
+    margin: 0; 
 }
 
 .filter-toggle-button.filter-icon-button:hover {
-    background-color: #61997a; 
+    background-color: rgba(100, 138, 128, 0.7); 
     transform: scale(1.05);
 }
 
 /* 浮動選單面板樣式  */
 .filter-dropdown-float {
     position: absolute;
-    top: 100%; 
-    width: 250px; 
+    top: 100%; /* 從按鈕下方開始 */
+    width: 280px; 
     max-width: 80vw; 
+    
     background-color: rgb(230, 233, 221);
     border: 1px solid #9f9862;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 15px;
     margin-top: 5px;
-    transform-origin: top right;  /* 讓下拉選單從右上角展開 */
-    max-height: 70vh; /* 設置選單的最大高度，例如螢幕高度的 70% */
-    overflow-y: auto; /* 垂直方向自動添加捲軸 */
-}
 
-.filter-dropdown-float.filter-dropdown-right {
     left: auto; 
-    right: 0; /* 選單對齊右側按鈕的右邊 */
+    right: 0; 
+    transform-origin: top right; 
+    max-height: 70vh; 
+    overflow-y: auto;
+    transform: none !important;
 }
 
 

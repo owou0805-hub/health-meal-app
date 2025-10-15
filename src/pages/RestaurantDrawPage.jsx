@@ -188,10 +188,10 @@ const RestaurantDrawPage = () => {
                         {/* 抽卡按鈕 */}
                         <button 
                             onClick={drawNewRestaurant} 
-                            disabled={loading || !selectedLocation || !selectedType}
+                            disabled={loading || !selectedLocation || !selectedType || allRestaurants.length === 0}
                             className="draw-button" 
                         >
-                            {loading ? '正在搜尋推薦中...' : '抽出餐廳！'}
+                            {loading ? '正在搜尋推薦中...' : (allRestaurants.length === 0 ? '無可用餐廳' : '抽出餐廳！')}
                         </button>
                         
                         {/* 優先顯示錯誤訊息 */}
@@ -208,7 +208,7 @@ const RestaurantDrawPage = () => {
                                     </p>
                                     
                                     <p style={{fontSize: '0.9em', color: '#666'}}>
-                                        **地址：** {currentRestaurant.address}
+                                        地址： {currentRestaurant.address}
                                     </p>
                                     
                                     {/* 地圖連結 (使用修正後的 map_url 欄位) */}
@@ -227,7 +227,7 @@ const RestaurantDrawPage = () => {
                             </div>
                         ) : (
                             // 首次載入或沒有結果時的提示
-                            (!error && !loading) && <p>點擊「抽出餐廳！」按鈕，開始尋找您的健康午餐。</p>
+                            (!error && !loading) && <p>點擊「抽出餐廳！」按鈕，開始尋找您的健康餐。</p>
                         )}
                     </div>
                 </div>
