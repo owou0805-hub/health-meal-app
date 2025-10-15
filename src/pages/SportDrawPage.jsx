@@ -1,8 +1,6 @@
 // src/pages/SportDrawPage.jsx
 import React, { useState, useEffect } from 'react'; // 【新增】 useEffect
 import '../index.css';
-// 【移除】: import { sports } from '../sportsData'; 
-// 【新增】: 匯入 Supabase 客戶端
 import { supabase } from '../supabaseClient'; 
 
 const SportDrawPage = () => {
@@ -15,9 +13,9 @@ const SportDrawPage = () => {
     const [drawnSport, setDrawnSport] = useState(null);
     const [isDrawing, setIsDrawing] = useState(false);
 
-    // =========================================================
+
     // 【核心變動 1】：useEffect 處理資料庫載入
-    // =========================================================
+
     useEffect(() => {
         const fetchSports = async () => {
             setLoadingData(true);
@@ -38,11 +36,11 @@ const SportDrawPage = () => {
         };
         
         fetchSports();
-    }, []); // 僅在組件首次載入時執行
+    }, []);
 
-    // =========================================================
+    
     // 【核心變動 2】：抽卡邏輯使用 allSports
-    // =========================================================
+
     const drawRandomSport = () => {
         // 1. 檢查資料是否已載入
         if (loadingData) {
@@ -84,7 +82,7 @@ const SportDrawPage = () => {
             
             {errorData && (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
-                    <p>⚠️ 資料載入失敗: {errorData}</p>
+                    <p>⚠️資料載入失敗: {errorData}</p>
                 </div>
             )}
             
@@ -121,7 +119,7 @@ const SportDrawPage = () => {
                                 {/* 運動資訊 */}
                                 <p>
                                     {/* 假設 Supabase 欄位是 duration 和 intensity */}
-                                    **預計時間:** {drawnSport.duration} 分鐘 | **強度:** {drawnSport.intensity}
+                                    預計時間: {drawnSport.duration} 分鐘 | 強度: {drawnSport.intensity}
                                 </p>
                                 
                                 {/* 簡介 */}
@@ -129,7 +127,7 @@ const SportDrawPage = () => {
                                 
                                 {/* 教學文字 (假設 Supabase 欄位是 instruction) */}
                                 <p className="highlight-text" style={{textAlign: 'left', marginTop: '1rem'}}>
-                                    **教學：**
+                                    教學：
                                 </p>
                                 <p style={{textAlign: 'left'}}>
                                     {drawnSport.instruction}
