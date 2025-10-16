@@ -144,7 +144,7 @@ const RestaurantDrawPage = () => {
                                 onClick={toggleFilter} 
                                 className="filter-toggle-button filter-icon-button" 
                             >
-                                ⚙
+                                {isFilterOpen ? '隱藏篩選條件 ▲' : '顯示篩選條件 ▼'}
                             </button>
 
                             {isFilterOpen && (

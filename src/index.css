@@ -634,7 +634,6 @@ button:hover {
     position: absolute;
     top: 30px;
     right: 30px;
-    
     background: rgba(255, 255, 255, 0.541); /* 半透明背景 */
     border: none;
     border-radius: 50%; /* 圓形按鈕 */
@@ -668,65 +667,88 @@ button:hover {
 /*篩選樣式表 */
 
 .filter-menu-float-container {
-    position: absolute; 
-    top: 20px;
-    z-index: 100; 
-    width: auto;
-    text-align: initial; 
-    margin: 0 
+    position: static !important; 
+    z-index: auto;
+    width: 100%;
+    margin: 10px auto 20px auto; /* 讓整個容器在白色區塊內置中 */
+    text-align: center;
 }
 
 .filter-menu-float-container.filter-right-side {
-    left: auto; 
-    right: 20px;
-    display: block;
-    justify-content: initial; 
-}
-
-/* 圓形按鈕樣式 */
-.filter-toggle-button.filter-icon-button {
-    display: flex; 
-    align-items: center;
+    display: block; 
     justify-content: center;
-    width: 50px;
-    height: 50px;
-    padding: 0; 
-    border-radius: 50%; 
-    font-size: 1.5em; 
-    background-color: rgba(100, 138, 128, 0.35);
-    color: var(--font-color-dark); /* 深色圖標 */
-    border: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: transform 0.3s, background-color 0.2s;
-    margin: 0; 
+    right: auto;
+    left: auto;
 }
-
+.draw-page-header-and-content {
+    /* 【關鍵修正】：添加頂部內邊距，避開浮動的按鈕 */
+    padding-top: 50px; /* 根據按鈕高度 (50px) 加上一點空間 */
+    width: 100%;
+    max-width: 800px; /* 限制寬度並置中 (可選) */
+    margin: 0 auto;
+}
+/* 確保標題和段落置中 */
+.draw-page-header-and-content h2,
+.draw-page-header-and-content p {
+    text-align: center !important; 
+}
+/* 篩選鈕樣式 */
+.filter-toggle-button.filter-icon-button {
+    width: 160px; 
+    max-width: 80%;
+    height: auto; /* 高度由內容決定 */
+    padding: 10px 15px; 
+    border-radius: 30px; /* 圓角 */
+    background-color: #0e4b2cd7;
+    color: rgb(239, 235, 235); 
+    font-weight: bold;
+    font-size: 0.9em;
+    /* 確保按鈕本身置中 */
+    margin: 10px auto 0 auto;  
+}
+.filter-options-panel.filter-embedded-panel {
+    /* 關鍵修正：移除絕對定位 */
+    position: static !important; 
+    top: auto;
+    left: auto;
+    right: auto;
+    transform: none !important;
+    /* 讓面板在頁面中置中 */
+    width: 90%; 
+    max-width: 500px;
+    margin: 10px auto;
+    /* 保持背景、邊框、捲動樣式 */
+    background-color: rgb(230, 233, 221);
+    border: 1px solid #9f9862;
+    border-radius: 8px;
+    box-shadow: none;
+    padding: 15px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
 .filter-toggle-button.filter-icon-button:hover {
-    background-color: rgba(100, 138, 128, 0.7); 
+    background-color: rgba(30, 81, 67, 0.7); 
     transform: scale(1.05);
 }
 
 /* 浮動選單面板樣式  */
 .filter-dropdown-float {
     position: absolute;
-    top: 100%; /* 從按鈕下方開始 */
+    top: 100%; /* 確保垂直位置在按鈕下方 */
+    margin-top: 10px; 
     width: 280px; 
-    max-width: 80vw; 
-    
+    max-width: 80vw; /* 確保在小螢幕上不會溢出 */
     background-color: rgb(230, 233, 221);
     border: 1px solid #9f9862;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 15px;
-    margin-top: 5px;
-
-    left: auto; 
-    right: 0; 
-    transform-origin: top right; 
+    left: 50%; /* 將左邊緣移到父容器中心 */
+    right: auto; 
+    transform: translateX(-50%); /* 向左平移自身寬度的一半 */
+    transform-origin: top center;
     max-height: 70vh; 
     overflow-y: auto;
-    transform: none !important;
 }
 
 

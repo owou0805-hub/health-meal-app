@@ -185,7 +185,8 @@ const RecipeDrawPage = () => {
     };
 
     return (
-        <div className="page-container-main">
+        // 🎯 外層容器 (page-container-main)
+        <div className="page-container-main"> 
             
             {/* 處理資料庫載入與錯誤狀態 (優先顯示) */}
             {loadingData && (
@@ -202,52 +203,35 @@ const RecipeDrawPage = () => {
             {(!loadingData && !errorData) && (
             <div className="recipe-draw-page-content content-relative"> 
                 
-                <div style={{ position: 'relative', width: '100%' }}>
+                {/* 標題與篩選鈕定位區 */}
+                <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
                     <h2 className="heandline-font">食譜抽卡：「今天吃什麼？」</h2>
                     <p>點擊按鈕，讓系統為你隨機推薦一道美味輕食！</p>
 
-                    {/* 篩選選單區塊 - 定位在 content 內右上角 (保持不變) */}
-                    <div className="filter-menu-float-container filter-right-side">
+                    {/* 篩選選單區塊 */}
+                    <div className="filter-controls-area embedded-controls">
                         <button 
                             onClick={toggleFilter} 
                             className="filter-toggle-button filter-icon-button" 
                         >
-                            ⚙
+                            {isFilterOpen ? '隱藏篩選條件 ▲' : '顯示篩選條件 ▼'}
                         </button>
 
                         {isFilterOpen && (
-                            <div className="filter-options-panel filter-dropdown-float">
-                                
-                                {/* 餐點篩選 - 單選 */}
+                            <div className="filter-options-panel filter-dropdown-float filter-dropdown-right">
+                                {/* ... (篩選選項 JSX) ... */}
                                 <h4 className="filter-group-title">餐點類型 (單選)</h4> 
                                 <div className="filter-tags-group filter-radio-group">
                                     {MEAL_FILTERS.map(tag => (
-                                        <button
-                                            key={tag}
-                                            className={`filter-tag-button ${selectedMeals.includes(tag) ? 'active-meal-radio' : ''}`}
-                                            onClick={() => handleFilterClick('meal', tag)}
-                                            disabled={loading}
-                                        >
-                                            {tag}
-                                        </button>
+                                        <button key={tag} className={`filter-tag-button ${selectedMeals.includes(tag) ? 'active-meal-radio' : ''}`} onClick={() => handleFilterClick('meal', tag)} disabled={loading}>{tag}</button>
                                     ))}
                                 </div>
-
-                                {/* 過敏原篩選 - 多選 */}
                                 <h4 className="filter-group-title">排除過敏原 (多選)</h4>
                                 <div className="filter-tags-group">
                                     {ALLERGY_FILTERS.map(tag => (
-                                        <button
-                                            key={tag}
-                                            className={`filter-tag-button ${selectedAllergies.includes(tag) ? 'active-allergy' : ''}`}
-                                            onClick={() => handleFilterClick('allergy', tag)}
-                                            disabled={loading}
-                                        >
-                                            {tag}
-                                        </button>
+                                        <button key={tag} className={`filter-tag-button ${selectedAllergies.includes(tag) ? 'active-allergy' : ''}`} onClick={() => handleFilterClick('allergy', tag)} disabled={loading}>{tag}</button>
                                     ))}
                                 </div>
-                                
                                 <p style={{marginTop: '10px', fontSize: '0.9em', color: '#666'}}>
                                     請選擇後，點擊下方「現在吃？」抽取。
                                 </p>
@@ -273,6 +257,7 @@ const RecipeDrawPage = () => {
                     {error && <p className="highlight-text" style={{ color: 'red' }}>{error}</p>}
                     
                     {currentRecipe ? (
+                        // 🎯 使用 Hook 返回的變數
                         <Link 
                             to={`/recipe/${currentRecipe.id}`} 
                             className="drawn-card-link"
@@ -293,7 +278,7 @@ const RecipeDrawPage = () => {
 
                                 <h3>{currentRecipe.title}</h3>
                                 
-                                {/* Tags 顯示區塊 */}
+                                {/* Tags 顯示邏輯 */}
                                 <div className="recipe-card-tags">
                                     {getSafeTags(currentRecipe.tags).slice(0, 2).map((tag, index) => (
                                         <span key={index} className="card-tag-pill">{tag.charAt(0).toUpperCase() + tag.slice(1)}</span>
