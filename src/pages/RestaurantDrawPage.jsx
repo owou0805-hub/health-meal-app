@@ -2,12 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import '../index.css'; 
 import { supabase } from '../supabaseClient'; 
-// 🎯 這裡可以選擇性地引入 useImageLoader，但餐廳圖片通常是 Placeholder 或公用網址，
-//    為簡化，我們直接使用 mapUrl 處理連結，不使用 Signed URL Hook。
-
-// 篩選器的選項 (這些選項將用於前端介面顯示)
+ 
 const LOCATION_FILTERS = ['台中西屯區', '台中南屯區', '台中北區', '台中南區'];
-const TYPE_FILTERS = ['沙拉', '輕食', '水煮餐', '健康餐盒'];
 
 // 函數：從陣列中隨機選取一個項目
 const getRandomRestaurant = (restaurants) => {
@@ -30,7 +26,6 @@ const RestaurantDrawPage = () => {
     // 篩選選單狀態
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(null); 
-    const [selectedType, setSelectedType] = useState(null); 
     
     // 處理選單開關
     const toggleFilter = () => {
@@ -41,11 +36,16 @@ const RestaurantDrawPage = () => {
     const handleFilterClick = (type, tag) => {
         if (type === 'location') {
             setSelectedLocation(prev => prev === tag ? null : tag);
-        } else if (type === 'type') {
-            setSelectedType(prev => prev === tag ? null : tag);
         }
     };
-    
+    const filteredRestaurants = allRestaurants.filter(rest => {
+        // 這裡可以加入一個靜態篩選，但我們先保持不過濾
+        if (selectedLocation && rest.location !== selectedLocation) return false;
+        if (selectedType && rest.type !== selectedType) return false;
+        // 確保評分大於 4.0
+        const rating = parseFloat(rest.rating);
+        return !isNaN(rating) && rating >= 4.0;
+    }); 
     // 【資料載入】：組件首次載入時從 Supabase 獲取所有餐廳資料
     useEffect(() => {
         const fetchRestaurants = async () => {
@@ -61,7 +61,8 @@ const RestaurantDrawPage = () => {
                 console.error('Error fetching restaurants:', error);
                 setErrorData('無法載入餐廳資料。請檢查網路或資料庫設定。');
             } else {
-                setAllRestaurants(data || []); 
+                setAllRestaurants(data || []);
+                console.log('餐廳資料已載入:', data);
             }
             setLoadingData(false);
         };
@@ -75,8 +76,8 @@ const RestaurantDrawPage = () => {
         if (loadingData) return;
 
         // 2. 檢查篩選條件是否滿足
-        if (!selectedLocation || !selectedType) {
-            setError("請選擇地區與餐廳類型後再抽取！");
+        if (!selectedLocation) {
+            setError("請選擇地區再抽取！");
             return;
         }
 
@@ -88,18 +89,15 @@ const RestaurantDrawPage = () => {
         setTimeout(() => {
             let filteredRestaurants = allRestaurants;
             
+            const safeSelectedLocation = selectedLocation ? selectedLocation.trim() : null;
             // 1. 根據地區篩選 (AND 邏輯)
-            filteredRestaurants = filteredRestaurants.filter(rest => 
-                rest.location === selectedLocation
-            );
-
-            // 2. 根據類型篩選 (AND 邏輯)
-            filteredRestaurants = filteredRestaurants.filter(rest => 
-                rest.type === selectedType
-            );
-
-            // 3. 排除低分餐廳 (假設只抽 4.0 分以上)
-            filteredRestaurants = filteredRestaurants.filter(rest => rest.rating >= 4.0);
+            if (safeSelectedLocation) {
+                filteredRestaurants = filteredRestaurants.filter(rest => {
+                    // 修正：對資料庫的 location 欄位也使用 trim()，確保精確匹配
+                    const dataLocation = rest.location ? rest.location.trim() : ''; 
+                    return dataLocation === safeSelectedLocation;
+                });
+            }
 
             // 隨機選取一家餐廳
             const selectedPlace = getRandomRestaurant(filteredRestaurants);
@@ -157,12 +155,6 @@ const RestaurantDrawPage = () => {
                                         ))}
                                     </div>
 
-                                    <h4 className="filter-group-title">餐點類型</h4>
-                                    <div className="filter-tags-group filter-radio-group">
-                                        {TYPE_FILTERS.map(tag => (
-                                            <button key={tag} className={`filter-tag-button ${selectedType === tag ? 'active-meal-radio' : ''}`} onClick={() => handleFilterClick('type', tag)} disabled={loading}>{tag}</button>
-                                        ))}
-                                    </div>
                                     <p style={{marginTop: '10px', fontSize: '0.9em', color: '#666'}}>
                                         請選擇後，點擊「抽出餐廳！」抽取。
                                     </p>
@@ -177,7 +169,7 @@ const RestaurantDrawPage = () => {
                         <button 
                             onClick={drawNewRestaurant} 
                             // 修正禁用邏輯：檢查是否有餐廳數據
-                            disabled={loading || !selectedLocation || !selectedType || allRestaurants.length === 0}
+                            disabled={loading || !selectedLocation || allRestaurants.length === 0}
                             className="draw-button" 
                         >
                             {loading ? '正在搜尋推薦中...' : (allRestaurants.length === 0 ? '無可用餐廳' : '抽出餐廳！')}
