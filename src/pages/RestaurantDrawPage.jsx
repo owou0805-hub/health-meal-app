@@ -29,7 +29,7 @@ const RestaurantDrawPage = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(null); 
     const [selectedType, setSelectedType] = useState(null);
-    // 增加 Hook 
+    // Hook 
     const currentImageUrlPath = currentRestaurant?.image_url || '';
     const { imageUrl: drawnImageUrl, loading: imageLoading } = useImageLoader(currentImageUrlPath);
     
@@ -68,15 +68,12 @@ const RestaurantDrawPage = () => {
         };
         
         fetchRestaurants();
-    }, []); // 僅在組件首次載入時執行
+    }, []);
 
     // 核心功能：抽一張餐廳卡片
     const drawNewRestaurant = () => {
         // 1. 檢查資料是否正在載入中
         if (loadingData) return;
-
-        // 2. 🎯 移除強制檢查：允許在沒有選擇篩選時抽卡
-        // if (!selectedLocation || !selectedType) { ... return; } 
 
         setError(null);
         setCurrentRestaurant(null);
@@ -103,14 +100,6 @@ const RestaurantDrawPage = () => {
                     return dataType === safeSelectedType;
                 });
             }
-
-            // 3. 硬性評分篩選 (假設您想要保留這個門檻，否則請刪除此區塊)
-            filteredRestaurants = filteredRestaurants.filter(rest => {
-                const rating = parseFloat(rest.rating);
-                return !isNaN(rating) && rating >= 4.0;
-            });
-
-
             // 隨機選取一家餐廳
             const selectedPlace = getRandomRestaurant(filteredRestaurants);
 
@@ -125,12 +114,12 @@ const RestaurantDrawPage = () => {
                     filterInfo = `類型為 ${selectedType}`;
                 }
 
-                setError(`抱歉！${filterInfo} 找不到任何符合條件的餐廳。`);
+                setError(`抱歉！${filterInfo} 中找不到任何符合條件的餐廳。`);
             }
 
             setCurrentRestaurant(selectedPlace);
             setLoading(false);
-        }, 800); // 模擬載入時間 0.8 秒
+        }, 500);
     };
 
     return (
@@ -154,7 +143,7 @@ const RestaurantDrawPage = () => {
             <div className="recipe-draw-page-content content-relative"> 
                 
                 <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
-                    <h2 className="heandline-font">輕食餐廳抽卡：「今天外食吃什麼？」</h2>
+                    <h2 className="heandline-font">輕食餐廳抽卡：「現在出門吃什麼？」</h2>
                     <p>選擇地區與類型，讓系統為您隨機推薦一間健康輕食餐廳！</p>
 
                     {/* 篩選選單區塊 */}
@@ -248,7 +237,7 @@ const RestaurantDrawPage = () => {
                         </div>
                     ) : (
                         // 首次載入或沒有結果時的提示
-                        (!error && !loading) && <p>點擊「抽出餐廳！」按鈕，開始尋找您的健康午餐。</p>
+                        (!error && !loading) && <p>點擊「抽出餐廳！」按鈕，尋找您的美味。</p>
                     )}
                 </div>
             </div>

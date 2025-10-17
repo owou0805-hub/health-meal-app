@@ -1,3 +1,4 @@
+// src/pages/RecipeDrawPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'; 
 import '../index.css'; 
@@ -28,8 +29,11 @@ const getSafeTags = (tags) => {
 };
 
 // 篩選器的選項
-const MEAL_FILTERS = ['早餐', '午餐', '晚餐'];
-const ALLERGY_FILTERS = ['花生', '乳製品', '海鮮'];
+const MEAL_FILTERS = ['早餐', '早午餐', '午餐', '點心', '晚餐'];
+const ALLERGY_FILTERS = [
+    '花生', '堅果', '乳製品', '雞蛋', '大豆', 
+    '小麥', '魚類', '甲殼類', '軟體動物', 
+    '芒果', '奇異果', '麩質', '雞肉', '牛肉', '豬肉'];
 
 const RecipeDrawPage = () => {
     const navigate = useNavigate();
@@ -39,7 +43,7 @@ const RecipeDrawPage = () => {
     const [loadingData, setLoadingData] = useState(true); 
     const [errorData, setErrorData] = useState(null); 
     
-    // 原有的抽卡狀態
+    // 抽卡狀態
     const [currentRecipe, setCurrentRecipe] = useState(null);
     const [loading, setLoading] = useState(false); 
     const [error, setError] = useState(null); 
@@ -54,9 +58,10 @@ const RecipeDrawPage = () => {
     const [selectedMeals, setSelectedMeals] = useState([]); 
     const [selectedAllergies, setSelectedAllergies] = useState([]); 
     
-    // 將 Hook 移到元件頂層
+    // Hook
     const currentImageUrlPath = currentRecipe?.image_url || '';
     const { imageUrl: drawnImageUrl, loading: imageLoading } = useImageLoader(currentImageUrlPath);
+    
     // 處理選單開關
     const toggleFilter = () => {
         setIsFilterOpen(!isFilterOpen);
@@ -171,7 +176,7 @@ const RecipeDrawPage = () => {
                     return !selectedAllergies.map(t => t.toLowerCase()).some(allergyTag => safeTags.includes(allergyTag));
                 });
             }
-            
+            // 隨機選取一個食譜
             const recipe = getRandomRecipe(filteredRecipes);
             
             if (!recipe) {
@@ -181,13 +186,12 @@ const RecipeDrawPage = () => {
             setCurrentRecipe(recipe);
             setLastDrawnId(recipe ? recipe.id : null); 
             setLoading(false);
-        }, 600);
+        }, 500);
     };
 
     return (
-        // 🎯 外層容器 (page-container-main)
         <div className="page-container-main"> 
-            
+
             {/* 處理資料庫載入與錯誤狀態 (優先顯示) */}
             {loadingData && (
                 <div style={{ textAlign: 'center', padding: '20px' }}><p>正在從資料庫載入食譜...請稍候</p></div>
@@ -205,11 +209,11 @@ const RecipeDrawPage = () => {
                 
                 {/* 標題與篩選鈕定位區 */}
                 <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
-                    <h2 className="heandline-font">食譜抽卡：「今天吃什麼？」</h2>
+                    <h2 className="heandline-font">食譜抽卡：「現在吃什麼？」</h2>
                     <p>點擊按鈕，讓系統為你隨機推薦一道美味輕食！</p>
 
-                    {/* 篩選選單區塊 */}
-                    <div className="filter-controls-area embedded-controls">
+                    {/* 篩選選單區塊 - 浮動右上角 */}
+                    <div className="filter-menu-float-container filter-right-side">
                         <button 
                             onClick={toggleFilter} 
                             className="filter-toggle-button filter-icon-button" 
@@ -233,7 +237,7 @@ const RecipeDrawPage = () => {
                                     ))}
                                 </div>
                                 <p style={{marginTop: '10px', fontSize: '0.9em', color: '#666'}}>
-                                    請選擇後，點擊下方「現在吃？」抽取。
+                                    請選擇後，點擊「現在吃？」抽取。
                                 </p>
                             </div>
                         )}
@@ -257,7 +261,6 @@ const RecipeDrawPage = () => {
                     {error && <p className="highlight-text" style={{ color: 'red' }}>{error}</p>}
                     
                     {currentRecipe ? (
-                        // 🎯 使用 Hook 返回的變數
                         <Link 
                             to={`/recipe/${currentRecipe.id}`} 
                             className="drawn-card-link"
@@ -294,7 +297,7 @@ const RecipeDrawPage = () => {
                         </Link>
                     ) : (
                         // 首次載入或沒有食譜時的提示
-                        (!error && !loading) && <p>點擊「現在吃？」按鈕，開始抽取食譜。</p>
+                        (!error && !loading) && <p>點擊「現在吃？」按鈕，製做您的美味。</p>
                     )}
                 </div>
             </div>
