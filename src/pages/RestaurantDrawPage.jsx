@@ -1,6 +1,7 @@
 // src/pages/RestaurantDrawPage.jsx
 import React, { useState, useEffect } from 'react';
 import '../index.css'; 
+import useImageLoader from '../hooks/useImageLoader'; 
 import { supabase } from '../supabaseClient'; 
  
 const LOCATION_FILTERS = ['台中西屯區', '台中南屯區', '台中北區', '台中南區'];
@@ -28,6 +29,9 @@ const RestaurantDrawPage = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(null); 
     const [selectedType, setSelectedType] = useState(null);
+    // 增加 Hook 
+    const currentImageUrlPath = currentRestaurant?.image_url || '';
+    const { imageUrl: drawnImageUrl, loading: imageLoading } = useImageLoader(currentImageUrlPath);
     
     // 處理選單開關
     const toggleFilter = () => {
@@ -81,10 +85,6 @@ const RestaurantDrawPage = () => {
         // 使用 setTimeout 模擬網路載入和抽卡動畫
         setTimeout(() => {
             let filteredRestaurants = allRestaurants;
-            
-            // =======================================================
-            // 🎯 篩選邏輯修正：僅在篩選條件存在時才執行過濾
-            // =======================================================
 
             // 1. 選項式地區篩選：僅在 selectedLocation 存在時才篩選
             if (selectedLocation) {
@@ -107,7 +107,6 @@ const RestaurantDrawPage = () => {
             // 3. 硬性評分篩選 (假設您想要保留這個門檻，否則請刪除此區塊)
             filteredRestaurants = filteredRestaurants.filter(rest => {
                 const rating = parseFloat(rest.rating);
-                // 假設我們保留 >= 4.0 的門檻
                 return !isNaN(rating) && rating >= 4.0;
             });
 
@@ -221,7 +220,7 @@ const RestaurantDrawPage = () => {
                                 <div className={`drawn-card ${loading ? 'shaking' : ''}`} style={{maxWidth: '400px'}}>
 
                                     <h3>🍴 {currentRestaurant.name}</h3>
-                                    {/* 圖片佔位符，如果使用 Private Storage，這裡需要 Hook */}
+                                    {imageLoading && <p>圖片載入中...</p>}
                                     <img 
                                         src={currentRestaurant.image_url || '/placeholder-restaurant.jpg'} 
                                         alt={currentRestaurant.name} 
@@ -233,7 +232,7 @@ const RestaurantDrawPage = () => {
                                     </p>
                                     
                                     <p style={{fontSize: '0.9em', color: '#666'}}>
-                                        **地址：** {currentRestaurant.address}
+                                        地址：{currentRestaurant.address}
                                     </p>
                                     
                                     {/* 地圖連結 (使用修正後的 map_url 欄位) */}
