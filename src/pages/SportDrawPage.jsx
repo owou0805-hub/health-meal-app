@@ -1,6 +1,7 @@
 // src/pages/SportDrawPage.jsx
 import React, { useState, useEffect } from 'react'; // 【新增】 useEffect
 import '../index.css';
+import useImageLoader from '../hooks/useImageLoader'; 
 import { supabase } from '../supabaseClient'; 
 
 const SportDrawPage = () => {
@@ -13,6 +14,14 @@ const SportDrawPage = () => {
     const [drawnSport, setDrawnSport] = useState(null);
     const [isDrawing, setIsDrawing] = useState(false);
 
+    // 呼叫 useImageLoader Hook
+    // 1. 取得儲存在資料庫中的圖片路徑
+    const sportImagePath = drawnSport ? drawnSport.image_url || drawnSport.image : null;
+    // 2. 呼叫 Hook 取得有權限的圖片 URL。
+    const { imageUrl: signedSportUrl, loading: loadingImageUrl } = useImageLoader(
+        'all_images', 
+        sportImagePath
+    );
 
     // 【核心變動 1】：useEffect 處理資料庫載入
 
@@ -82,7 +91,7 @@ const SportDrawPage = () => {
             
             {errorData && (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
-                    <p>⚠️資料載入失敗: {errorData}</p>
+                    <p>⚠️ 資料載入失敗: {errorData}</p>
                 </div>
             )}
             
@@ -105,13 +114,21 @@ const SportDrawPage = () => {
                         {/* 顯示抽出的運動卡片 */}
                         {drawnSport && (
                             <div className={`drawn-card ${isDrawing ? 'shaking' : ''}`}>
-                                
-                                {/* 運動圖片 (假設 Supabase 欄位是 image_url) */}
-                                <img 
-                                    src={drawnSport.image_url || drawnSport.image || '/placeholder-sport.jpg'} // 嘗試使用 image_url
-                                    alt={drawnSport.name} 
-                                    className="recipe-card-img" 
-                                />
+
+                                {/* 🎯 核心修正 2：圖片渲染邏輯 - 使用 Hook 取得的 URL */}
+                                {(loadingImageUrl || !signedSportUrl) ? (
+                                    // 圖片載入或簽名 URL 尚未準備好時顯示佔位符
+                                    <div className="recipe-card-img-placeholder" style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f0f0' }}>
+                                        {loadingImageUrl ? '圖片載入中...' : '圖片準備中...'}
+                                    </div>
+                                ) : (
+                                    // 圖片載入完成後使用簽名 URL
+                                    <img 
+                                        src={signedSportUrl}
+                                        alt={drawnSport.name} 
+                                        className="recipe-card-img" 
+                                    />
+                                )}
                                 
                                 {/* 運動名稱 (標題) */}
                                 <h3>{drawnSport.name}</h3>
@@ -119,7 +136,7 @@ const SportDrawPage = () => {
                                 {/* 運動資訊 */}
                                 <p>
                                     {/* 假設 Supabase 欄位是 duration 和 intensity */}
-                                    預計時間: {drawnSport.duration} 分鐘 | 強度: {drawnSport.intensity}
+                                    預計時間: {drawnSport.duration} | 強度: {drawnSport.intensity}
                                 </p>
                                 
                                 {/* 簡介 */}
