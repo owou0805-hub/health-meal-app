@@ -1,29 +1,34 @@
 // src/pages/SportDrawPage.jsx
-import React, { useState, useEffect } from 'react'; // 【新增】 useEffect
+import React, { useState, useEffect } from 'react'; 
 import '../index.css';
 import useImageLoader from '../hooks/useImageLoader'; 
 import { supabase } from '../supabaseClient'; 
 
 const SportDrawPage = () => {
-    // 【新增】：Supabase 資料相關狀態
-    const [allSports, setAllSports] = useState([]); // 儲存從 Supabase 讀取的全部運動
-    const [loadingData, setLoadingData] = useState(true); // 資料庫載入狀態
-    const [errorData, setErrorData] = useState(null); // 資料庫錯誤訊息
+    // Supabase 資料相關狀態
+    const [allSports, setAllSports] = useState([]); 
+    const [loadingData, setLoadingData] = useState(true); 
+    const [errorData, setErrorData] = useState(null); 
     
     // 抽卡流程相關狀態
     const [drawnSport, setDrawnSport] = useState(null);
     const [isDrawing, setIsDrawing] = useState(false);
 
-    // 呼叫 useImageLoader Hook
-    // 1. 取得儲存在資料庫中的圖片路徑
+    
+    // 🎯 核心修正 1：呼叫 useImageLoader Hook
+    // 1. 取得儲存在資料庫中的完整圖片路徑 (例如: "sport/s_1.jpg")
     const sportImagePath = drawnSport ? drawnSport.image_url || drawnSport.image : null;
+    
     // 2. 呼叫 Hook 取得有權限的圖片 URL。
-    const { imageUrl: signedSportUrl, loading: loadingImageUrl } = useImageLoader(
-        'all_images', 
-        sportImagePath
+    // 假設您的 Bucket 名稱是 'all_images'
+    const { 
+        imageUrl: signedSportUrl, 
+        loading: loadingImageUrl 
+    } = useImageLoader(
+        'all_images', // 🎯 傳遞您的 Supabase Storage Bucket 名稱
+        sportImagePath // 🎯 傳遞完整的路徑 (例如: "sport/s_1.jpg")
     );
 
-    // 【核心變動 1】：useEffect 處理資料庫載入
 
     useEffect(() => {
         const fetchSports = async () => {
@@ -39,7 +44,7 @@ const SportDrawPage = () => {
                 console.error('Error fetching sports:', error);
                 setErrorData('無法載入運動資料。請檢查網路或資料庫設定。');
             } else {
-                setAllSports(data || []); // 成功時設定資料
+                setAllSports(data || []); 
             }
             setLoadingData(false);
         };
@@ -48,37 +53,20 @@ const SportDrawPage = () => {
     }, []);
 
     
-    // 【核心變動 2】：抽卡邏輯使用 allSports
-
     const drawRandomSport = () => {
-        // 1. 檢查資料是否已載入
-        if (loadingData) {
-            setErrorData("資料仍在載入中，請稍候。"); // 使用 errorData 來顯示載入中的錯誤/提示
-            return;
-        }
+        if (loadingData || isDrawing || allSports.length === 0) return;
 
-        // 2. 檢查是否有運動資料
-        if (allSports.length === 0) {
-            setErrorData("資料庫中沒有可用的運動項目。");
-            return;
-        }
-
-        if (isDrawing) return;
-
-        // 清除任何舊的錯誤提示
         setErrorData(null); 
         setIsDrawing(true);
         setDrawnSport(null); 
 
-        // 模擬抽卡延遲
         setTimeout(() => {
-            // 隨機選取一個運動，使用 allSports
             const randomIndex = Math.floor(Math.random() * allSports.length);
             const newSport = allSports[randomIndex];
 
             setDrawnSport(newSport);
             setIsDrawing(false);
-        }, 1000); // 延遲 1 秒
+        }, 1000); 
     };
 
     return (
@@ -105,7 +93,6 @@ const SportDrawPage = () => {
                         <button 
                             className="draw-button" 
                             onClick={drawRandomSport}
-                            // 如果正在抽卡或沒有資料，則禁用按鈕
                             disabled={isDrawing || allSports.length === 0} 
                         >
                             {isDrawing ? '正在思考...' : (allSports.length === 0 ? '無可用運動' : '開始運動吧！')}
@@ -114,7 +101,7 @@ const SportDrawPage = () => {
                         {/* 顯示抽出的運動卡片 */}
                         {drawnSport && (
                             <div className={`drawn-card ${isDrawing ? 'shaking' : ''}`}>
-
+                                
                                 {/* 🎯 核心修正 2：圖片渲染邏輯 - 使用 Hook 取得的 URL */}
                                 {(loadingImageUrl || !signedSportUrl) ? (
                                     // 圖片載入或簽名 URL 尚未準備好時顯示佔位符
@@ -124,7 +111,7 @@ const SportDrawPage = () => {
                                 ) : (
                                     // 圖片載入完成後使用簽名 URL
                                     <img 
-                                        src={signedSportUrl}
+                                        src={signedSportUrl} // 🎯 修正：使用 Hook 取得的 Signed URL
                                         alt={drawnSport.name} 
                                         className="recipe-card-img" 
                                     />
@@ -135,7 +122,6 @@ const SportDrawPage = () => {
                                 
                                 {/* 運動資訊 */}
                                 <p>
-                                    {/* 假設 Supabase 欄位是 duration 和 intensity */}
                                     預計時間: {drawnSport.duration} | 強度: {drawnSport.intensity}
                                 </p>
                                 
