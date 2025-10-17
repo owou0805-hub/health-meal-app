@@ -212,8 +212,8 @@ const RecipeDrawPage = () => {
                     <h2 className="heandline-font">食譜抽卡：「現在吃什麼？」</h2>
                     <p>點擊按鈕，讓系統為你隨機推薦一道美味輕食！</p>
 
-                    {/* 篩選選單區塊 - 浮動右上角 */}
-                    <div className="filter-menu-float-container filter-right-side">
+                    {/* 篩選選單區塊 */}
+                    <div className="filter-button-and-dropdown-container">
                         <button 
                             onClick={toggleFilter} 
                             className="filter-toggle-button filter-icon-button" 
