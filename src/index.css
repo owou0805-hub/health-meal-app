@@ -912,10 +912,10 @@ button:hover {
 .draw-area {
     display: flex;
     flex-direction: column;
-    margin: 1 rem auto 0 auto !important;
     align-items: center; 
+    margin: 0 !important; 
+    padding: 0 !important;
     width: 100%;
-    padding: 0;
 }
 
 /* 抽卡按鈕 */
@@ -941,13 +941,14 @@ button:hover {
 
 /* 抽出的卡片連結容器 */
 .drawn-card-link {
-    display: block;
+    display: block !important; 
     width: 90%;
     max-width: 400px;
     margin: 0 auto !important; 
+    padding: 0 !important;
+    box-sizing: border-box !important; 
     text-decoration: none; 
     color: inherit;
-    padding: 0 !important;
 }
 
 /* 抽出的卡片本體 (核心修正區 - 啟用 Flexbox 置中內容) */
@@ -961,7 +962,7 @@ button:hover {
     max-width: 400px;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
     animation: fadeIn 0.5s ease-out;
-    /* 【關鍵修正！】：強制卡片內容垂直排列且水平置中 */
+    box-sizing: border-box !important; /* 確保內邊距和邊框不會溢出父元素 */
     display: flex; 
     flex-direction: column;
     align-items: center !important; /* <--- 讓所有子元素水平置中 */
