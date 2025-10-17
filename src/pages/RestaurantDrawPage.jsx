@@ -4,6 +4,7 @@ import '../index.css';
 import { supabase } from '../supabaseClient'; 
  
 const LOCATION_FILTERS = ['台中西屯區', '台中南屯區', '台中北區', '台中南區'];
+const TYPE_FILTERS = ['沙拉', '輕食', '水煮餐', '健康餐盒'];
 
 // 函數：從陣列中隨機選取一個項目
 const getRandomRestaurant = (restaurants) => {
@@ -26,6 +27,7 @@ const RestaurantDrawPage = () => {
     // 篩選選單狀態
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(null); 
+    const [selectedType, setSelectedType] = useState(null);
     
     // 處理選單開關
     const toggleFilter = () => {
@@ -36,6 +38,8 @@ const RestaurantDrawPage = () => {
     const handleFilterClick = (type, tag) => {
         if (type === 'location') {
             setSelectedLocation(prev => prev === tag ? null : tag);
+        } else if (type === 'type') { 
+            setSelectedType(prev => prev === tag ? null : tag);
         }
     };
     // 【資料載入】：組件首次載入時從 Supabase 獲取所有餐廳資料
@@ -66,6 +70,10 @@ const RestaurantDrawPage = () => {
     const drawNewRestaurant = () => {
         // 1. 檢查資料是否正在載入中
         if (loadingData) return;
+
+        // 2. 🎯 移除強制檢查：允許在沒有選擇篩選時抽卡
+        // if (!selectedLocation || !selectedType) { ... return; } 
+
         setError(null);
         setCurrentRestaurant(null);
         setLoading(true);
@@ -74,22 +82,51 @@ const RestaurantDrawPage = () => {
         setTimeout(() => {
             let filteredRestaurants = allRestaurants;
             
-            const safeSelectedLocation = selectedLocation ? selectedLocation.trim() : null;
-            // 1. 根據地區篩選 (AND 邏輯)
-             if (safeSelectedLocation) {
+            // =======================================================
+            // 🎯 篩選邏輯修正：僅在篩選條件存在時才執行過濾
+            // =======================================================
+
+            // 1. 選項式地區篩選：僅在 selectedLocation 存在時才篩選
+            if (selectedLocation) {
+                const safeSelectedLocation = selectedLocation.trim();
                 filteredRestaurants = filteredRestaurants.filter(rest => {
-                    // 修正：對資料庫的 location 欄位也使用 trim()，確保精確匹配
                     const dataLocation = rest.location ? rest.location.trim() : ''; 
                     return dataLocation === safeSelectedLocation;
                 });
             }
+            
+            // 2. 選項式類型篩選：僅在 selectedType 存在時才篩選 (假設您已恢復 selectedType 狀態)
+            if (selectedType) {
+                const safeSelectedType = selectedType.trim();
+                filteredRestaurants = filteredRestaurants.filter(rest => {
+                    const dataType = rest.type ? rest.type.trim() : ''; 
+                    return dataType === safeSelectedType;
+                });
+            }
+
+            // 3. 硬性評分篩選 (假設您想要保留這個門檻，否則請刪除此區塊)
+            filteredRestaurants = filteredRestaurants.filter(rest => {
+                const rating = parseFloat(rest.rating);
+                // 假設我們保留 >= 4.0 的門檻
+                return !isNaN(rating) && rating >= 4.0;
+            });
+
 
             // 隨機選取一家餐廳
             const selectedPlace = getRandomRestaurant(filteredRestaurants);
 
             if (!selectedPlace) {
-                const filterText = selectedLocation ? `在 ${selectedLocation}` : '在當前篩選條件下';
-                setError(`抱歉！${filterText} 找不到任何餐廳資料。`);
+                // 修正錯誤提示：根據是否篩選來顯示不同的錯誤訊息
+                let filterInfo = '所有餐廳中';
+                if (selectedLocation && selectedType) {
+                    filterInfo = `在 ${selectedLocation} 且類型為 ${selectedType}`;
+                } else if (selectedLocation) {
+                    filterInfo = `在 ${selectedLocation}`;
+                } else if (selectedType) {
+                    filterInfo = `類型為 ${selectedType}`;
+                }
+
+                setError(`抱歉！${filterInfo} 找不到任何符合條件的餐廳。`);
             }
 
             setCurrentRestaurant(selectedPlace);
@@ -138,6 +175,20 @@ const RestaurantDrawPage = () => {
                                     <div className="filter-tags-group filter-radio-group">
                                         {LOCATION_FILTERS.map(tag => (
                                             <button key={tag} className={`filter-tag-button ${selectedLocation === tag ? 'active-meal-radio' : ''}`} onClick={() => handleFilterClick('location', tag)} disabled={loading}>{tag}</button>
+                                        ))}
+                                    </div>
+                                    {/*餐點類型篩選區塊 */}
+                                    <h4 className="filter-group-title">餐點類型</h4>
+                                    <div className="filter-tags-group filter-radio-group">
+                                        {TYPE_FILTERS.map(tag => (
+                                            <button 
+                                                key={tag} 
+                                                className={`filter-tag-button ${selectedType === tag ? 'active-meal-radio' : ''}`} 
+                                                onClick={() => handleFilterClick('type', tag)} 
+                                                disabled={loading}
+                                            >
+                                                {tag}
+                                            </button>
                                         ))}
                                     </div>
 
