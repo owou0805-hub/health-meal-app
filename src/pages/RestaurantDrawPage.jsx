@@ -4,7 +4,7 @@ import '../index.css';
 import { supabase } from '../supabaseClient'; 
  
 const LOCATION_FILTERS = ['台中西屯區', '台中南屯區', '台中北區', '台中南區'];
-const TYPE_FILTERS = ['沙拉', '輕食', '水煮餐', '健康餐盒'];
+const TYPE_FILTERS = ['沙拉', '水煮餐', '輕食/健康餐盒'];
 
 // 函數：從陣列中隨機選取一個項目
 const getRandomRestaurant = (restaurants) => {
