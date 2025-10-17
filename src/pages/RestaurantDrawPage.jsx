@@ -215,38 +215,36 @@ const RestaurantDrawPage = () => {
                     
                     {currentRestaurant ? (
                         // 顯示結果卡片
-                        <div className="drawn-card-link" style={{ cursor: 'default' }}>
-                            <div className={`drawn-card ${loading ? 'shaking' : ''}`} style={{maxWidth: '400px'}}>
+                        <div className={`drawn-card ${loading ? 'shaking' : ''}`} style={{maxWidth: '400px'}}>
 
-                                <h3>{currentRestaurant.name}</h3>
-                                {imageLoading && <p>圖片載入中...</p>}
-                                <img 
-                                    src={drawnImageUrl} 
-                                    alt={currentRestaurant.name} 
-                                    className="recipe-card-img" 
-                                />
-                                
-                                <p className="highlight-text" style={{color: 'green', fontSize: '1.1em'}}>
-                                    {currentRestaurant.rating} ⭐ 
-                                </p>
-                                
-                                <p style={{fontSize: '0.9em', color: '#666'}}>
-                                    地址：{currentRestaurant.address}
-                                </p>
-                                
-                                {/* 地圖連結 (使用修正後的 map_url 欄位) */}
-                                {currentRestaurant.map_url && ( 
-                                    <a 
-                                        href={currentRestaurant.map_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer" 
-                                        className="toggle-form-link" 
-                                        style={{ marginTop: '0.8rem', display: 'inline-block', fontWeight: 'bold' }}
-                                    >
-                                        在 Google 地圖上導航 »
-                                    </a>
-                                )}
-                            </div>
+                            <h3>{currentRestaurant.name}</h3>
+                            {imageLoading && <p>圖片載入中...</p>}
+                            <img 
+                                src={drawnImageUrl} 
+                                alt={currentRestaurant.name} 
+                                className="recipe-card-img" 
+                            />
+                            
+                            <p className="highlight-text" style={{color: 'green', fontSize: '1.1em'}}>
+                                {currentRestaurant.rating} ⭐ 
+                            </p>
+                            
+                            <p style={{fontSize: '0.9em', color: '#666'}}>
+                                地址：{currentRestaurant.address}
+                            </p>
+                            
+                            {/* 地圖連結 */}
+                            {currentRestaurant.map_url && ( 
+                                <a 
+                                    href={currentRestaurant.map_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="toggle-form-link" 
+                                    style={{ marginTop: '0.8rem', display: 'inline-block', fontWeight: 'bold' }}
+                                >
+                                    在 Google 地圖上導航 »
+                                </a>
+                            )}
                         </div>
                     ) : (
                         // 首次載入或沒有結果時的提示
