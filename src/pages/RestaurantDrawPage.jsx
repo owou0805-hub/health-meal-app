@@ -4,7 +4,7 @@ import '../index.css';
 import useImageLoader from '../hooks/useImageLoader'; 
 import { supabase } from '../supabaseClient'; 
  
-const LOCATION_FILTERS = ['台中西屯區', '台中南屯區', '台中北區', '台中南區'];
+const LOCATION_FILTERS = ['霧峰區', '大里區', '東區', '南區', '中區', '西區', '北區', '南屯區', '西屯區', '北屯區'];
 const TYPE_FILTERS = ['沙拉', '水煮餐', '輕食/健康餐盒'];
 
 // 函數：從陣列中隨機選取一個項目
@@ -218,7 +218,7 @@ const RestaurantDrawPage = () => {
                         <div className="drawn-card-link" style={{ cursor: 'default' }}>
                             <div className={`drawn-card ${loading ? 'shaking' : ''}`} style={{maxWidth: '400px'}}>
 
-                                <h3>🍴 {currentRestaurant.name}</h3>
+                                <h3>{currentRestaurant.name}</h3>
                                 {imageLoading && <p>圖片載入中...</p>}
                                 <img 
                                     src={drawnImageUrl} 
