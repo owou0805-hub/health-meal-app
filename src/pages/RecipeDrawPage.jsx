@@ -35,7 +35,7 @@ const ALLERGY_FILTERS = [
     '小麥', '魚類', '甲殼類', '軟體動物', 
     '芒果', '奇異果', '麩質', '雞肉', '牛肉', '豬肉'];
 
-const RecipeDrawPage = () => {
+const RecipeDrawPage = ({ defaultAllergens = [] }) => {
     const navigate = useNavigate();
 
     // Supabase 資料相關狀態
@@ -56,7 +56,7 @@ const RecipeDrawPage = () => {
     // 篩選選單狀態
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedMeals, setSelectedMeals] = useState([]); 
-    const [selectedAllergies, setSelectedAllergies] = useState([]); 
+    const [selectedAllergies, setSelectedAllergies] = useState(defaultAllergens); 
     
     // Hook
     const currentImageUrlPath = currentRecipe?.image_url || '';
@@ -82,7 +82,12 @@ const RecipeDrawPage = () => {
             });
         }
     };
-    
+    useEffect(() => {
+        // 只有當 prop 有值且改變時才更新，防止 Profile 頁面尚未載入時使用空陣列
+        if (defaultAllergens && defaultAllergens.length > 0) {
+            setSelectedAllergies(defaultAllergens);
+        }
+    }, [defaultAllergens]);
     //useEffect 處理資料庫載入
     useEffect(() => {
         const fetchRecipes = async () => {

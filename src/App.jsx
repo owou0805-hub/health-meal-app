@@ -7,7 +7,6 @@ import AuthLayout from './layouts/AuthLayout';
 import MainLayout from './layouts/MainLayout';
 // 匯入所有頁面元件
 import LoginPage from './pages/LoginPage';
-// 🎯 【移除】: import ResetPasswordPage from './pages/ResetPasswordPage';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import RecipeDetailPage from './pages/RecipeDetailPage'; 
@@ -27,33 +26,64 @@ import './index.css';
 // ----------------------------------------------------
 const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin }) => {
     
-    // 🎯 監聽 Auth 狀態變化和 Session 
+    // 儲存用戶的過敏原設定
+    const [userAllergens, setUserAllergens] = useState([]); 
+
+    // 獲取當前用戶的過敏原函式
+    const fetchUserAllergens = useCallback(async (userId) => {
+        if (!userId) {
+            setUserAllergens([]);
+            return;
+        }
+        
+        // 從 user_profiles 表格讀取過敏原
+        const { data, error } = await supabase
+            .from('user_profiles')
+            .select('allergens') // 選擇儲存過敏原的欄位
+            .eq('id', userId)
+            .single();
+
+        if (data) {
+            // 確保設置為陣列，即使資料庫儲存為 null/undefined
+            setUserAllergens(data.allergens || []);
+        } else {
+            setUserAllergens([]);
+        }
+    }, []);
+    // 監聽 Auth 狀態變化和 Session 
     useEffect(() => {
         // 1. 首次掛載時檢查是否有活動 Session (保持登入狀態)
         supabase.auth.getSession().then(({ data: { session } }) => {
             setIsLoggedIn(!!session);
+            // 呼叫：如果已經有 Session，就立即獲取過敏原
+            if (session) {
+                fetchUserAllergens(session.user.id);
+            }
         });
 
         // 2. 監聽狀態變化，處理登入/登出同步
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             setIsLoggedIn(!!session);
+            // 登入時，讀取用戶的過敏原
+            if (session) {
+                fetchUserAllergens(session.user.id);
+            } else {
+                setUserAllergens([]); // 登出時清空
+            }
         });
 
         // 清理函數：組件卸載時取消訂閱
         return () => subscription.unsubscribe();
-    }, [setIsLoggedIn]);
+    }, [setIsLoggedIn, fetchUserAllergens]);
 
-    
-    // ====================================================================
     // 登入後路由集合 (MainLayout)
-    // ====================================================================
     const LoggedInRoutes = useCallback(() => (
         <MainLayout handleLogout={handleLogout}>
             <Routes>
                 {/* 頁面路由：所有功能頁面 */}
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/recipes" element={<RecipeListPage />} />
-                <Route path="/recipes/draw" element={<RecipeDrawPage />} /> 
+                <Route path="/recipes/draw" element={<RecipeDrawPage defaultAllergens={userAllergens} />}/> 
                 <Route path="/recipe/:id" element={<RecipeDetailPage />} /> 
                 <Route path="/restaurant-draw" element={<RestaurantDrawPage />} /> 
                 <Route path="/sport-draw" element={<SportDrawPage />} />
@@ -65,12 +95,9 @@ const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin 
                 <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
         </MainLayout>
-    ), [handleLogout]);
+    ), [handleLogout, userAllergens]);
 
-
-    // ====================================================================
     // 未登入路由集合 (AuthLayout)
-    // ====================================================================
     const LoggedOutRoutes = useCallback(() => (
         <AuthLayout>
             <Routes>
@@ -81,8 +108,6 @@ const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin 
         </AuthLayout>
     ), [handleLogin]);
 
-
-    // 這裡渲染您的頂層路由
     return (
         <Routes>
             
@@ -101,8 +126,6 @@ const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin 
         </Routes>
     );
 };
-// ----------------------------------------------------
-
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -111,7 +134,7 @@ function App() {
         setIsLoggedIn(true);
     };
 
-    // 🎯 修正：登出邏輯 (使用 async 函式清除 Supabase Session)
+    // 登出邏輯 (使用 async 函式清除 Supabase Session)
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut(); 
         if (error) {
