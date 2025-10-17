@@ -38,14 +38,6 @@ const RestaurantDrawPage = () => {
             setSelectedLocation(prev => prev === tag ? null : tag);
         }
     };
-    const filteredRestaurants = allRestaurants.filter(rest => {
-        // 這裡可以加入一個靜態篩選，但我們先保持不過濾
-        if (selectedLocation && rest.location !== selectedLocation) return false;
-        if (selectedType && rest.type !== selectedType) return false;
-        // 確保評分大於 4.0
-        const rating = parseFloat(rest.rating);
-        return !isNaN(rating) && rating >= 4.0;
-    }); 
     // 【資料載入】：組件首次載入時從 Supabase 獲取所有餐廳資料
     useEffect(() => {
         const fetchRestaurants = async () => {
@@ -74,13 +66,6 @@ const RestaurantDrawPage = () => {
     const drawNewRestaurant = () => {
         // 1. 檢查資料是否正在載入中
         if (loadingData) return;
-
-        // 2. 檢查篩選條件是否滿足
-        if (!selectedLocation) {
-            setError("請選擇地區再抽取！");
-            return;
-        }
-
         setError(null);
         setCurrentRestaurant(null);
         setLoading(true);
@@ -91,7 +76,7 @@ const RestaurantDrawPage = () => {
             
             const safeSelectedLocation = selectedLocation ? selectedLocation.trim() : null;
             // 1. 根據地區篩選 (AND 邏輯)
-            if (safeSelectedLocation) {
+             if (safeSelectedLocation) {
                 filteredRestaurants = filteredRestaurants.filter(rest => {
                     // 修正：對資料庫的 location 欄位也使用 trim()，確保精確匹配
                     const dataLocation = rest.location ? rest.location.trim() : ''; 
@@ -103,7 +88,8 @@ const RestaurantDrawPage = () => {
             const selectedPlace = getRandomRestaurant(filteredRestaurants);
 
             if (!selectedPlace) {
-                setError(`抱歉！在 ${selectedLocation} 找不到符合 "${selectedType}" 且評價良好的餐廳。`);
+                const filterText = selectedLocation ? `在 ${selectedLocation}` : '在當前篩選條件下';
+                setError(`抱歉！${filterText} 找不到任何餐廳資料。`);
             }
 
             setCurrentRestaurant(selectedPlace);
@@ -169,7 +155,7 @@ const RestaurantDrawPage = () => {
                         <button 
                             onClick={drawNewRestaurant} 
                             // 修正禁用邏輯：檢查是否有餐廳數據
-                            disabled={loading || !selectedLocation || allRestaurants.length === 0}
+                            disabled={loading || allRestaurants.length === 0}
                             className="draw-button" 
                         >
                             {loading ? '正在搜尋推薦中...' : (allRestaurants.length === 0 ? '無可用餐廳' : '抽出餐廳！')}
