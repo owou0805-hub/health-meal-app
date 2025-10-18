@@ -9,6 +9,7 @@ import '../index.css'; // 確保引入全域 CSS
 // 請確保你的圖片檔案路徑是正確的！
 import banner1 from '../assets/banner1.jpg'; 
 import banner2 from '../assets/banner2.jpg'; 
+import banner3 from '../assets/banner3.jpg'; 
 
 // 假設這是一個虛擬的食譜資料，之後會替換為 Supabase 資料
 const dummyRecipes = [
@@ -18,7 +19,7 @@ const dummyRecipes = [
   { id: 4, title: '鮭魚酪梨醬厚吐司', tags: ['早餐', '快速'] },
 ];
 
-const banners = [banner1, banner2]; // 輪播圖片陣列
+const banners = [banner1, banner2, banner3]; // 輪播圖片陣列
 
 const HomePage = () => {
   // 儲存搜尋欄輸入值的狀態
@@ -51,13 +52,13 @@ const HomePage = () => {
   // 1. 輪播圖的狀態管理
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-  // 2. 自動輪播的邏輯 (每 4 秒換一張)
+  // 2. 自動輪播的邏輯 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentBannerIndex((prevIndex) => 
         (prevIndex + 1) % banners.length
       );
-    }, 4000); // 4000 毫秒 = 4 秒
+    }, 4000); // 4 秒
     
     return () => clearInterval(interval); // 清除定時器，避免記憶體洩漏
   }, []);
@@ -77,9 +78,7 @@ const HomePage = () => {
               <i className="fas fa-search"></i> 搜尋
           </button>
       </form>
-      {/* --------------------------------- */}
       {/* 輪播圖區塊 (Banner) */}
-      {/* --------------------------------- */}
       <div className="banner-container">
         {banners.map((banner, index) => (
           <img
@@ -91,7 +90,7 @@ const HomePage = () => {
             style={{ 
               display: index === currentBannerIndex ? 'block' : 'none',
               width: '100%',
-              height: '350px', // 固定高度，可在 CSS 中調整
+              height: '270px', // 固定高度，可在 CSS 中調整
               objectFit: 'cover'
             }}
           />
