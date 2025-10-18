@@ -110,8 +110,8 @@ const SportDrawPage = () => {
                                 {/* 示意圖文字 */}
                                 <p style={{
                                     fontSize: '0.75rem', 
-                                    color: '#964242ff', 
-                                    margin: '1px 0 1px 0',
+                                    color: '#a43d3dff', 
+                                    margin: '0 0 0 0',
                                     textAlign: 'center'
                                 }}>
                                     (圖片為示意圖)

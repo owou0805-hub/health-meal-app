@@ -283,7 +283,14 @@ const RecipeDrawPage = ({ defaultAllergens = [] }) => {
                                     alt={currentRecipe.title} 
                                     className="recipe-card-img"
                                 />
-
+                                <p style={{
+                                    fontSize: '0.75rem', 
+                                    color: '#a43d3dff', 
+                                    margin: '0 0 0 0',
+                                    textAlign: 'center'
+                                }}>
+                                    (圖片為示意圖)
+                                </p>
                                 <h3>{currentRecipe.title}</h3>
                                 
                                 {/* Tags 顯示邏輯 */}

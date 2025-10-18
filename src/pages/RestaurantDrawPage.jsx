@@ -213,7 +213,14 @@ const RestaurantDrawPage = () => {
                                 alt={currentRestaurant.name} 
                                 className="recipe-card-img" 
                             />
-                            
+                            <p style={{
+                                    fontSize: '0.75rem', 
+                                    color: '#a43d3dff', 
+                                    margin: '0 0 0 0',
+                                    textAlign: 'center'
+                                }}>
+                                    (圖片為示意圖)
+                                </p>
                             <p className="highlight-text" style={{color: 'green', fontSize: '1.1em'}}>
                                 {currentRestaurant.rating} ⭐ 
                             </p>
