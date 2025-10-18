@@ -1,4 +1,5 @@
 // src/pages/SportDrawPage.jsx
+
 import React, { useState, useEffect } from 'react'; 
 import '../index.css';
 import useImageLoader from '../hooks/useImageLoader'; 
@@ -14,28 +15,18 @@ const SportDrawPage = () => {
     const [drawnSport, setDrawnSport] = useState(null);
     const [isDrawing, setIsDrawing] = useState(false);
 
-    
-    // 🎯 核心修正 1：呼叫 useImageLoader Hook
-    // 1. 取得儲存在資料庫中的完整圖片路徑 (例如: "sport/s_1.jpg")
+    // 🎯 核心修正 1：將 Hook 移到元件頂層，並修正路徑組裝
     const sportImagePath = drawnSport ? drawnSport.image_url || drawnSport.image : null;
-    
-    // 2. 呼叫 Hook 取得有權限的圖片 URL。
-    // 假設您的 Bucket 名稱是 'all_images'
     const { 
         imageUrl: signedSportUrl, 
         loading: loadingImageUrl 
-    } = useImageLoader(
-        'all_images', // 🎯 傳遞您的 Supabase Storage Bucket 名稱
-        sportImagePath // 🎯 傳遞完整的路徑 (例如: "sport/s_1.jpg")
-    );
-
+    } = useImageLoader(sportImagePath); 
 
     useEffect(() => {
         const fetchSports = async () => {
             setLoadingData(true);
             setErrorData(null);
             
-            // 從 'sports' 表格中選擇所有欄位
             const { data, error } = await supabase
                 .from('sports') 
                 .select('*'); 
@@ -105,18 +96,26 @@ const SportDrawPage = () => {
                                 {/* 🎯 核心修正 2：圖片渲染邏輯 - 使用 Hook 取得的 URL */}
                                 {(loadingImageUrl || !signedSportUrl) ? (
                                     // 圖片載入或簽名 URL 尚未準備好時顯示佔位符
-                                    <div className="recipe-card-img-placeholder" style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f0f0' }}>
+                                    <div className="recipe-card-img-placeholder" style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f0f0c3' }}>
                                         {loadingImageUrl ? '圖片載入中...' : '圖片準備中...'}
                                     </div>
                                 ) : (
                                     // 圖片載入完成後使用簽名 URL
                                     <img 
-                                        src={signedSportUrl} // 🎯 修正：使用 Hook 取得的 Signed URL
+                                        src={signedSportUrl} // 使用 Hook 取得的 Signed URL
                                         alt={drawnSport.name} 
                                         className="recipe-card-img" 
                                     />
                                 )}
-                                
+                                {/* 示意圖文字 */}
+                                <p style={{
+                                    fontSize: '0.75rem', 
+                                    color: '#964242ff', 
+                                    margin: '1px 0 1px 0',
+                                    textAlign: 'center'
+                                }}>
+                                    (圖片為示意圖)
+                                </p>
                                 {/* 運動名稱 (標題) */}
                                 <h3>{drawnSport.name}</h3>
                                 
@@ -128,7 +127,7 @@ const SportDrawPage = () => {
                                 {/* 簡介 */}
                                 <p>{drawnSport.description}</p>
                                 
-                                {/* 教學文字 (假設 Supabase 欄位是 instruction) */}
+                                {/* 教學文字 ( Supabase 欄位是 instruction) */}
                                 <p className="highlight-text" style={{textAlign: 'left', marginTop: '1rem'}}>
                                     教學：
                                 </p>
@@ -136,7 +135,7 @@ const SportDrawPage = () => {
                                     {drawnSport.instruction}
                                 </p>
 
-                                {/* 觀看影片連結 (假設 Supabase 欄位是 video_url) */}
+                                {/* 觀看影片連結 (Supabase 欄位是 video_url) */}
                                 {drawnSport.video_url && (
                                     <a 
                                         href={drawnSport.video_url} 
