@@ -14,6 +14,24 @@ const getRandomRestaurant = (restaurants) => {
     return restaurants[randomIndex];
 };
 
+//從 RecipeDrawPage 引入 getSafeTags 輔助函數
+// 輔助函數：將資料庫 Tags (可能為字串或陣列) 安全轉換為陣列 (小寫)
+const getSafeTags = (tags) => {
+    if (Array.isArray(tags)) {
+        return tags.map(t => t.trim().toLowerCase()); // 已經是陣列，直接轉換小寫
+    }
+    if (typeof tags === 'string' && tags.trim()) {
+        // 處理 PostgreSQL 陣列字串格式 {tag1,tag2}
+        return tags
+            .replace(/[{}]/g, '') // 移除所有 { 和 }
+            .split(',')
+            .map(t => t.trim().toLowerCase())
+            .filter(t => t); // 移除空字串
+    }
+    return [];
+};
+
+
 const RestaurantDrawPage = () => {
     // Supabase 資料相關狀態
     const [allRestaurants, setAllRestaurants] = useState([]); 
@@ -62,7 +80,7 @@ const RestaurantDrawPage = () => {
                 setErrorData('無法載入餐廳資料。請檢查網路或資料庫設定。');
             } else {
                 setAllRestaurants(data || []);
-                console.log('餐廳資料已載入:', data);
+                // 移除 console.log('餐廳資料已載入:', data);
             }
             setLoadingData(false);
         };
@@ -83,23 +101,34 @@ const RestaurantDrawPage = () => {
         setTimeout(() => {
             let filteredRestaurants = allRestaurants;
 
-            // 1. 選項式地區篩選：僅在 selectedLocation 存在時才篩選
+            // 🎯 【核心修正 2】：修改篩選邏輯
+
+            // 1. 選項式地區篩選：
             if (selectedLocation) {
-                const safeSelectedLocation = selectedLocation.trim();
+                // 將選擇的篩選器轉為小寫 (e.g. "霧峰區")
+                const lowerSelectedLocation = selectedLocation.toLowerCase();
+                
                 filteredRestaurants = filteredRestaurants.filter(rest => {
-                    const dataLocation = rest.location ? rest.location.trim() : ''; 
-                    return dataLocation === safeSelectedLocation;
+                    // 獲取該餐廳所有的 location 標籤 (e.g. ['霧峰區', '台中市'])
+                    const dataLocations = getSafeTags(rest.location);
+                    // 檢查資料庫的陣列中，是否 "包含" 選擇的標籤
+                    return dataLocations.includes(lowerSelectedLocation);
                 });
             }
             
-            // 2. 選項式類型篩選：僅在 selectedType 存在時才篩選 (假設您已恢復 selectedType 狀態)
+            // 2. 選項式類型篩選：
             if (selectedType) {
-                const safeSelectedType = selectedType.trim();
+                 // 將選擇的篩選器轉為小寫 (e.g. "沙拉")
+                const lowerSelectedType = selectedType.toLowerCase();
+                
                 filteredRestaurants = filteredRestaurants.filter(rest => {
-                    const dataType = rest.type ? rest.type.trim() : ''; 
-                    return dataType === safeSelectedType;
+                    // 獲取該餐廳所有的 type 標籤 (e.g. ['沙拉', '輕食/健康餐盒'])
+                    const dataTypes = getSafeTags(rest.type);
+                    // 檢查資料庫的陣列中，是否 "包含" 選擇的標籤
+                    return dataTypes.includes(lowerSelectedType);
                 });
             }
+            
             // 隨機選取一家餐廳
             const selectedPlace = getRandomRestaurant(filteredRestaurants);
 
