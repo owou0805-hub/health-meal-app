@@ -30,12 +30,25 @@ const getSafeTags = (tags) => {
 
 // 篩選器的選項
 const MEAL_FILTERS = ['早餐', '早午餐', '午餐', '點心', '晚餐'];
+const HEALTH_GOAL_FILTERS = [
+    '減脂', '增肌', '高蛋白', '低碳水', '高纖維', 
+    '控糖飲食', '降膽固醇', '低鈉飲食', '美肌養顏', 
+    '促進腸胃健康', '提升專注力', '增進睡眠品質'
+];
+const DIET_HABIT_FILTERS = [
+    '一般飲食', '全素', '蛋奶素', '魚素', 
+    '地中海飲食', '原型食物飲食', '生酮飲食'
+];
 const ALLERGY_FILTERS = [
     '花生', '堅果', '乳製品', '雞蛋', '大豆', 
     '小麥', '魚類', '甲殼類', '軟體動物', 
     '芒果', '奇異果', '麩質', '雞肉', '牛肉', '豬肉'];
 
-const RecipeDrawPage = ({ defaultAllergens = [] }) => {
+const RecipeDrawPage = ({ 
+    defaultAllergens = [], 
+    defaultGoals = [],
+    defaultDiets = []
+}) => {
     const navigate = useNavigate();
 
     // Supabase 資料相關狀態
@@ -55,7 +68,9 @@ const RecipeDrawPage = ({ defaultAllergens = [] }) => {
 
     // 篩選選單狀態
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [selectedMeals, setSelectedMeals] = useState([]); 
+    const [selectedMeals, setSelectedMeals] = useState([]);
+    const [selectedGoals, setSelectedGoals] = useState(defaultGoals);
+    const [selectedDiets, setSelectedDiets] = useState(defaultDiets);
     const [selectedAllergies, setSelectedAllergies] = useState(defaultAllergens); 
     
     // Hook
@@ -69,16 +84,30 @@ const RecipeDrawPage = ({ defaultAllergens = [] }) => {
     
     // 處理篩選標籤點擊
     const handleFilterClick = (type, tag) => {
+        
+        const updateMultiSelect = (prevTags) => {
+            if (prevTags.includes(tag)) {
+                return prevTags.filter(t => t !== tag); 
+            }
+            return [...prevTags, tag]; 
+        }
+
         if (type === 'meal') {
-            // 餐點篩選：單選邏輯 (點擊選中，再點擊取消)
+            // 餐點篩選：單選邏輯
             setSelectedMeals(prevMeals => prevMeals.includes(tag) ? [] : [tag]);
         } else if (type === 'allergy') {
             // 過敏原篩選：多選邏輯
-            setSelectedAllergies(prevAllergies => {
-                if (prevAllergies.includes(tag)) {
-                    return prevAllergies.filter(t => t !== tag);
+            setSelectedAllergies(updateMultiSelect);
+        } else if (type === 'goal') {
+            // 健康目標篩選：多選邏輯
+            setSelectedGoals(updateMultiSelect);
+        } else if (type === 'diet') {
+            // 飲食習慣篩選 : 單選邏輯
+            setSelectedDiets(prevDiets => {
+                if (prevDiets.includes(tag)) {
+                    return []; 
                 }
-                return [...prevAllergies, tag];
+                return [tag]; // 只保留當前選中的標籤
             });
         }
     };
@@ -87,7 +116,13 @@ const RecipeDrawPage = ({ defaultAllergens = [] }) => {
         if (defaultAllergens && defaultAllergens.length > 0) {
             setSelectedAllergies(defaultAllergens);
         }
-    }, [defaultAllergens]);
+        if (defaultGoals && defaultGoals.length > 0) {
+            setSelectedGoals(defaultGoals);
+        }
+        if (defaultDiets && defaultDiets.length > 0) {
+            setSelectedDiets(defaultDiets);
+        }
+    }, [defaultAllergens, defaultGoals, defaultDiets]);
     //useEffect 處理資料庫載入
     useEffect(() => {
         const fetchRecipes = async () => {
@@ -162,25 +197,31 @@ const RecipeDrawPage = ({ defaultAllergens = [] }) => {
         setTimeout(() => {
             let filteredRecipes = availableRecipes; 
             
-            // 1. 根據餐點標籤過濾 (AND 邏輯)
-            if (selectedMeals.length > 0) {
-                filteredRecipes = filteredRecipes.filter(recipe => {
-                    const safeTags = getSafeTags(recipe.tags); // 🎯 使用輔助函數
-
-                    // 檢查食譜的 tags 是否包含選中的餐點標籤 (已轉換小寫)
-                    return selectedMeals.map(t => t.toLowerCase()).some(mealTag => safeTags.includes(mealTag));
-                });
-            }
+            // 轉換所有選中的標籤為小寫，用於比對
+            const lowerMeals = selectedMeals.map(t => t.toLowerCase());
+            const lowerGoals = selectedGoals.map(t => t.toLowerCase());
+            const lowerDiets = selectedDiets.map(t => t.toLowerCase());
+            const lowerAllergies = selectedAllergies.map(t => t.toLowerCase());
             
-            // 2. 根據過敏原標籤過濾 (排除邏輯)
-            if (selectedAllergies.length > 0) {
-                filteredRecipes = filteredRecipes.filter(recipe => {
-                    const safeTags = getSafeTags(recipe.tags); // 🎯 使用輔助函數
+            filteredRecipes = filteredRecipes.filter(recipe => {
+                const safeTags = getSafeTags(recipe.tags); // 食譜所有標籤 (已小寫)
+                
+                // 1. 餐點篩選 (OR 邏輯: 包含任一選中餐點)
+                const passesMealFilter = lowerMeals.length === 0 || lowerMeals.some(mealTag => safeTags.includes(mealTag));
 
-                    // 檢查食譜的 tags 是否不包含任何選中的過敏原 (已轉換小寫)
-                    return !selectedAllergies.map(t => t.toLowerCase()).some(allergyTag => safeTags.includes(allergyTag));
-                });
-            }
+                // 2. 健康目標篩選 (OR 邏輯: 包含任一選中目標)
+                const passesGoalFilter = lowerGoals.length === 0 || lowerGoals.some(goalTag => safeTags.includes(goalTag));
+
+                // 3. 飲食習慣篩選 (OR 邏輯: 包含任一選中習慣)
+                const passesDietFilter = lowerDiets.length === 0 || lowerDiets.some(dietTag => safeTags.includes(dietTag));
+
+                // 4. 過敏原篩選 (排除邏輯: 不包含任何選中過敏原)
+                const passesAllergyFilter = lowerAllergies.length === 0 || !lowerAllergies.some(allergyTag => safeTags.includes(allergyTag));
+                
+                // 所有條件必須同時滿足 (AND)
+                return passesMealFilter && passesGoalFilter && passesDietFilter && passesAllergyFilter;
+            });
+
             // 隨機選取一個食譜
             const recipe = getRandomRecipe(filteredRecipes);
             
@@ -228,17 +269,62 @@ const RecipeDrawPage = ({ defaultAllergens = [] }) => {
 
                         {isFilterOpen && (
                             <div className="filter-options-panel filter-dropdown-float filter-dropdown-right">
-                                {/* ... (篩選選項 JSX) ... */}
+                                {/* 餐點類型 (單選) */}
                                 <h4 className="filter-group-title">餐點類型 (單選)</h4> 
                                 <div className="filter-tags-group filter-radio-group">
                                     {MEAL_FILTERS.map(tag => (
-                                        <button key={tag} className={`filter-tag-button ${selectedMeals.includes(tag) ? 'active-meal-radio' : ''}`} onClick={() => handleFilterClick('meal', tag)} disabled={loading}>{tag}</button>
+                                        <button 
+                                            key={`meal-${tag}`} 
+                                            className={`filter-tag-button ${selectedMeals.includes(tag) ? 'active-meal-radio' : ''}`} 
+                                            onClick={() => handleFilterClick('meal', tag)} 
+                                            disabled={loading}>
+                                            {tag}
+                                        </button>
                                     ))}
                                 </div>
+                                
+                                {/* 健康目標 (多選) */}
+                                <h4 className="filter-group-title">健康目標 (多選)</h4> 
+                                <div className="filter-tags-group">
+                                    {HEALTH_GOAL_FILTERS.map(tag => (
+                                        <button 
+                                            key={`goal-${tag}`} 
+                                            className={`filter-tag-button ${selectedGoals.includes(tag) ? 'active' : ''}`} 
+                                            onClick={() => handleFilterClick('goal', tag)} 
+                                            disabled={loading}>
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/*飲食習慣 (單選) */}
+                                <h4 className="filter-group-title">飲食習慣 (單選)</h4> 
+                                <div className="filter-tags-group filter-radio-group">
+                                    {DIET_HABIT_FILTERS.map(tag => (
+                                        <button 
+                                            key={`diet-${tag}`} 
+                                            type="button"
+                                            // 🎯 使用 active-meal-radio Class 進行單選變色
+                                            className={`filter-tag-button ${selectedDiets.includes(tag) ? 'active-meal-radio' : ''}`} 
+                                            // 🎯 確保 onClick 呼叫 'diet' 類型
+                                            onClick={() => handleFilterClick('diet', tag)} 
+                                            disabled={loading}>
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* 排除過敏原 (多選) */}
                                 <h4 className="filter-group-title">排除過敏原 (多選)</h4>
                                 <div className="filter-tags-group">
                                     {ALLERGY_FILTERS.map(tag => (
-                                        <button key={tag} className={`filter-tag-button ${selectedAllergies.includes(tag) ? 'active-allergy' : ''}`} onClick={() => handleFilterClick('allergy', tag)} disabled={loading}>{tag}</button>
+                                        <button 
+                                            key={`allergy-${tag}`} 
+                                            className={`filter-tag-button ${selectedAllergies.includes(tag) ? 'active-allergy' : ''}`} 
+                                            onClick={() => handleFilterClick('allergy', tag)} 
+                                            disabled={loading}>
+                                            {tag}
+                                        </button>
                                     ))}
                                 </div>
                                 <p style={{marginTop: '10px', fontSize: '0.9em', color: '#666'}}>

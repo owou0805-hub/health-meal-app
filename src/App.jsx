@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient'; // 🎯 匯入 supabase
 
 // 匯入佈局元件
 import AuthLayout from './layouts/AuthLayout';
 import MainLayout from './layouts/MainLayout';
-// 匯入所有頁面元件
+// 匯入所有頁面元件 (已移除 ResetPasswordPage)
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
@@ -22,68 +22,85 @@ import './index.css';
 
 
 // ----------------------------------------------------
-// 【核心邏輯】：處理狀態和 Session 監聽
+// 【頂層邏輯元件】：處理狀態、Session 監聽和導航
 // ----------------------------------------------------
 const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin }) => {
     
-    // 儲存用戶的過敏原設定
-    const [userAllergens, setUserAllergens] = useState([]); 
-
-    // 獲取當前用戶的過敏原函式
-    const fetchUserAllergens = useCallback(async (userId) => {
+    // 🎯 關鍵修正：在這裡初始化 useNavigate Hook
+    const navigate = useNavigate(); 
+    
+    // 儲存用戶的所有偏好設定
+    const [userPreferences, setUserPreferences] = useState({
+        goals: [],
+        diet: '一般飲食',
+        allergens: [],
+    });
+    
+    // 獲取當前用戶的所有偏好設定函式
+    const fetchUserPreferences = useCallback(async (userId) => {
         if (!userId) {
-            setUserAllergens([]);
+            setUserPreferences({ goals: [], diet: [], allergens: [] });
             return;
         }
         
-        // 從 user_profiles 表格讀取過敏原
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('user_profiles')
-            .select('allergens') // 選擇儲存過敏原的欄位
+            .select('health_goals, dietary_habit, allergens') 
             .eq('id', userId)
             .single();
 
         if (data) {
-            // 確保設置為陣列，即使資料庫儲存為 null/undefined
-            setUserAllergens(data.allergens || []);
+            setUserPreferences({
+                goals: data.health_goals || [],
+                diet: data.dietary_habit || '一般飲食',
+                allergens: data.allergens || [],
+            });
         } else {
-            setUserAllergens([]);
+            setUserPreferences({ goals: [], diet: '一般飲食', allergens: [] });
         }
-    }, []);
+    }, []); 
+
+    
     // 監聽 Auth 狀態變化和 Session 
     useEffect(() => {
-        // 1. 首次掛載時檢查是否有活動 Session (保持登入狀態)
+        // 1. 首次掛載時檢查 Session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setIsLoggedIn(!!session);
-            // 呼叫：如果已經有 Session，就立即獲取過敏原
-            if (session) {
-                fetchUserAllergens(session.user.id);
-            }
+            if (session) { fetchUserPreferences(session.user.id); }
         });
 
         // 2. 監聽狀態變化，處理登入/登出同步
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             setIsLoggedIn(!!session);
-            // 登入時，讀取用戶的過敏原
+            
             if (session) {
-                fetchUserAllergens(session.user.id);
+                fetchUserPreferences(session.user.id);
             } else {
-                setUserAllergens([]); // 登出時清空
+                setUserPreferences({ goals: [], diet: [], allergens: [] }); 
             }
         });
 
-        // 清理函數：組件卸載時取消訂閱
+        // 3. 處理密碼重設連結點擊後的自動導航 (已移除，因用戶無此頁面)
+        
         return () => subscription.unsubscribe();
-    }, [setIsLoggedIn, fetchUserAllergens]);
+    }, [setIsLoggedIn, fetchUserPreferences, navigate]); 
 
+    
+    // ====================================================================
     // 登入後路由集合 (MainLayout)
+    // ====================================================================
     const LoggedInRoutes = useCallback(() => (
         <MainLayout handleLogout={handleLogout}>
             <Routes>
-                {/* 頁面路由：所有功能頁面 */}
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/recipes" element={<RecipeListPage />} />
-                <Route path="/recipes/draw" element={<RecipeDrawPage defaultAllergens={userAllergens} />}/> 
+                
+                {/* 🎯 關鍵：將 userPreferences 傳遞給 RecipeDrawPage */}
+                <Route 
+                    path="/recipes/draw" 
+                    element={<RecipeDrawPage preferences={userPreferences} />} 
+                /> 
+                
                 <Route path="/recipe/:id" element={<RecipeDetailPage />} /> 
                 <Route path="/restaurant-draw" element={<RestaurantDrawPage />} /> 
                 <Route path="/sport-draw" element={<SportDrawPage />} />
@@ -95,18 +112,21 @@ const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin 
                 <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
         </MainLayout>
-    ), [handleLogout, userAllergens]);
+    ), [handleLogout, userPreferences]); 
 
+
+    // ====================================================================
     // 未登入路由集合 (AuthLayout)
+    // ====================================================================
     const LoggedOutRoutes = useCallback(() => (
         <AuthLayout>
             <Routes>
-                {/* 登入頁是 /，並處理其他未匹配路徑 */}
                 <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </AuthLayout>
     ), [handleLogin]);
+
 
     return (
         <Routes>
@@ -126,6 +146,8 @@ const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin 
         </Routes>
     );
 };
+// ----------------------------------------------------
+
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -134,18 +156,15 @@ function App() {
         setIsLoggedIn(true);
     };
 
-    // 登出邏輯 (使用 async 函式清除 Supabase Session)
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut(); 
         if (error) {
             console.error('Supabase 登出錯誤:', error.message);
         }
-        // 狀態會通過 onAuthStateChange 監聽器自動更新為 false
     };
 
     return (
         <BrowserRouter>
-            {/* 最終渲染 AppLogicWrapper，它在路由環境中處理所有邏輯和渲染 */}
             <AppLogicWrapper 
                 isLoggedIn={isLoggedIn} 
                 setIsLoggedIn={setIsLoggedIn} 
