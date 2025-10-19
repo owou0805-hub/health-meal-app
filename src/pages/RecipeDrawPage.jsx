@@ -63,16 +63,15 @@ const RecipeDrawPage = ({
     const [lastDrawnId, setLastDrawnId] = useState(null);
     const [searchParams] = useSearchParams();
     
-    // 可用食譜狀態 (經過 URL 篩選後的結果)
+    // 'availableRecipes' 儲存 URL 搜尋結果
     const [availableRecipes, setAvailableRecipes] = useState([]); 
+    // 'filteredRecipes' 儲存最終篩選結果
+    const [filteredRecipes, setFilteredRecipes] = useState([]);
 
     // 篩選選單狀態
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedMeals, setSelectedMeals] = useState([]);
-    
-    // 🎯 【核心修正 2】：使用傳入的 props 初始化 state
     const [selectedGoals, setSelectedGoals] = useState(defaultGoals);
-    // 將傳入的字串 prop (defaultDiet) 轉換為陣列 state
     const [selectedDiets, setSelectedDiets] = useState(defaultDiet ? [defaultDiet] : []);
     const [selectedAllergies, setSelectedAllergies] = useState(defaultAllergens); 
     
@@ -146,6 +145,7 @@ const RecipeDrawPage = ({
             } else {
                 setAllRecipes(data || []); 
                 setAvailableRecipes(data || []);
+                setFilteredRecipes(data || []);
             }
             setLoadingData(false);
         };
@@ -157,38 +157,64 @@ const RecipeDrawPage = ({
     useEffect(() => {
         if (loadingData) return; 
         const urlSearchTerm = searchParams.get('search');
+        
+        let baseRecipes = allRecipes;
+
         if (urlSearchTerm) {
             const decodedSearchTerm = decodeURIComponent(urlSearchTerm).trim().toLowerCase();
             
-            const filteredBySearch = allRecipes.filter(recipe => {
+            baseRecipes = allRecipes.filter(recipe => {
                 const matchTitle = recipe.title.toLowerCase().includes(decodedSearchTerm);
-                
-                // 檢查 tags 欄位，使用 getSafeTags 輔助函數
                 const safeTags = getSafeTags(recipe.tags);
-
                 const matchTags = safeTags.some(tag => 
                     tag.includes(decodedSearchTerm)
                 );
-                
                 return matchTitle || matchTags;
             });
             
-            setAvailableRecipes(filteredBySearch);
-            
             setIsFilterOpen(true);
             
-            const initialRecipe = getRandomRecipe(filteredBySearch);
+            const initialRecipe = getRandomRecipe(baseRecipes);
             setCurrentRecipe(initialRecipe);
 
-            if (!initialRecipe && filteredBySearch.length === 0) {
+            if (!initialRecipe && baseRecipes.length === 0) {
                  setError("根據 URL 搜尋關鍵字，沒有找到符合的食譜。");
             }
-        } else {
-            setAvailableRecipes(allRecipes); 
         }
+        
+        setAvailableRecipes(allRecipes); 
+    
 
     }, [searchParams, allRecipes, loadingData]); 
 
+    // 🎯 【核心修正 4】：此 useEffect 專門用來更新 'filteredRecipes' 狀態
+    useEffect(() => {
+        if (loadingData) return;
+
+        let recipes = availableRecipes; // 基礎是 URL 搜尋後的結果
+
+        // 轉換所有選中的標籤為小寫，用於比對
+        const lowerMeals = selectedMeals.map(t => t.toLowerCase());
+        const lowerGoals = selectedGoals.map(t => t.toLowerCase());
+        const lowerDiets = selectedDiets.map(t => t.toLowerCase());
+        const lowerAllergies = selectedAllergies.map(t => t.toLowerCase());
+        
+        recipes = recipes.filter(recipe => {
+            const safeTags = getSafeTags(recipe.tags); // 食譜所有標籤 (已小寫)
+            
+            const passesMealFilter = lowerMeals.length === 0 || lowerMeals.some(mealTag => safeTags.includes(mealTag));
+            const passesGoalFilter = lowerGoals.length === 0 || lowerGoals.some(goalTag => safeTags.includes(goalTag));
+            const passesDietFilter = lowerDiets.length === 0 || lowerDiets.some(dietTag => safeTags.includes(dietTag));
+            const passesAllergyFilter = lowerAllergies.length === 0 || !lowerAllergies.some(allergyTag => safeTags.includes(allergyTag));
+            
+            return passesMealFilter && passesGoalFilter && passesDietFilter && passesAllergyFilter;
+        });
+
+        // 3. 更新計數狀態
+        setFilteredRecipes(recipes);
+    
+    }, [selectedMeals, selectedGoals, selectedDiets, selectedAllergies, availableRecipes, loadingData]); // 依賴所有篩選條件和 availableRecipes
+    
     // 核心功能：抽一張卡片
     const drawNewRecipe = () => {
         if (loadingData) {
@@ -201,34 +227,7 @@ const RecipeDrawPage = ({
         setLoading(true);
 
         setTimeout(() => {
-            let filteredRecipes = availableRecipes; 
-            
-            // 轉換所有選中的標籤為小寫，用於比對
-            const lowerMeals = selectedMeals.map(t => t.toLowerCase());
-            const lowerGoals = selectedGoals.map(t => t.toLowerCase());
-            const lowerDiets = selectedDiets.map(t => t.toLowerCase());
-            const lowerAllergies = selectedAllergies.map(t => t.toLowerCase());
-            
-            filteredRecipes = filteredRecipes.filter(recipe => {
-                const safeTags = getSafeTags(recipe.tags); // 食譜所有標籤 (已小寫)
-                
-                // 1. 餐點篩選 (OR 邏輯: 包含任一選中餐點)
-                const passesMealFilter = lowerMeals.length === 0 || lowerMeals.some(mealTag => safeTags.includes(mealTag));
-
-                // 2. 健康目標篩選 (OR 邏輯: 包含任一選中目標)
-                const passesGoalFilter = lowerGoals.length === 0 || lowerGoals.some(goalTag => safeTags.includes(goalTag));
-
-                // 3. 飲食習慣篩選 (OR 邏輯: 包含任一選中習慣)
-                const passesDietFilter = lowerDiets.length === 0 || lowerDiets.some(dietTag => safeTags.includes(dietTag));
-
-                // 4. 過敏原篩選 (排除邏輯: 不包含任何選中過敏原)
-                const passesAllergyFilter = lowerAllergies.length === 0 || !lowerAllergies.some(allergyTag => safeTags.includes(allergyTag));
-                
-                // 所有條件必須同時滿足 (AND)
-                return passesMealFilter && passesGoalFilter && passesDietFilter && passesAllergyFilter;
-            });
-
-            // 隨機選取一個食譜
+            // 🎯 【核心修正 5】：直接使用 'filteredRecipes' 狀態
             const recipe = getRandomRecipe(filteredRecipes);
             
             if (!recipe) {
@@ -275,6 +274,18 @@ const RecipeDrawPage = ({
 
                         {isFilterOpen && (
                             <div className="filter-options-panel filter-dropdown-float filter-dropdown-right">
+                                
+                                {/* 提示文字改用 filteredRecipes.length */}
+                                <p style={{
+                                    fontSize: '0.9em', 
+                                    color: '#0e4b2d', 
+                                    fontWeight: 'bold', 
+                                    borderBottom: '1px solid #ccc', 
+                                    paddingBottom: '10px',
+                                    marginTop: '0'
+                                }}>
+                                    {loadingData ? '載入中...' : `目前有 ${filteredRecipes.length} 道食譜符合條件`}
+                                </p>
                                 {/* 餐點類型 (單選) */}
                                 <h4 className="filter-group-title">餐點類型 (單選)</h4> 
                                 <div className="filter-tags-group filter-radio-group">
@@ -310,9 +321,9 @@ const RecipeDrawPage = ({
                                         <button 
                                             key={`diet-${tag}`} 
                                             type="button"
-                                            // 🎯 使用 active-meal-radio Class 進行單選變色
+                                            // 用active-meal-radio Class 進行單選變色
                                             className={`filter-tag-button ${selectedDiets.includes(tag) ? 'active-meal-radio' : ''}`} 
-                                            // 🎯 確保 onClick 呼叫 'diet' 類型
+                                            // 確保 onClick 呼叫 'diet' 類型
                                             onClick={() => handleFilterClick('diet', tag)} 
                                             disabled={loading}>
                                             {tag}
@@ -346,11 +357,12 @@ const RecipeDrawPage = ({
                     {/* 抽卡按鈕 */}
                     <button 
                         onClick={drawNewRecipe} 
-                        disabled={loading || availableRecipes.length === 0} 
+                        disabled={loading || filteredRecipes.length === 0} 
                         className="draw-button" 
                     >
                         {loading ? '正在推薦...' : (
-                            availableRecipes.length === 0 ? '無可用食譜' : '現在吃？'
+                            allRecipes.length === 0 ? '無可用食譜' :
+                            (filteredRecipes.length === 0 ? '無符合條件食譜' : '現在吃？')
                         )}
                     </button>
                     
