@@ -204,7 +204,17 @@ const RecipeDrawPage = ({
             
             const passesMealFilter = lowerMeals.length === 0 || lowerMeals.some(mealTag => safeTags.includes(mealTag));
             const passesGoalFilter = lowerGoals.length === 0 || lowerGoals.some(goalTag => safeTags.includes(goalTag));
-            const passesDietFilter = lowerDiets.length === 0 || lowerDiets.some(dietTag => safeTags.includes(dietTag));
+            // 🎯 【核心修正】：修改飲食習慣的篩選邏輯
+            // 檢查是否 (沒有選擇飲食) 或 (選擇的是'一般飲食')
+            const dietFilterIsIgnored = 
+                lowerDiets.length === 0 || 
+                (lowerDiets.length === 1 && lowerDiets[0] === '一般飲食');
+            
+            // 如果 dietFilterIsIgnored 為 true，則 passesDietFilter 為 true
+            // 否則 (例如選了'全素')，才執行 .some() 檢查
+            const passesDietFilter = 
+                dietFilterIsIgnored ? true : lowerDiets.some(dietTag => safeTags.includes(dietTag));
+            
             const passesAllergyFilter = lowerAllergies.length === 0 || !lowerAllergies.some(allergyTag => safeTags.includes(allergyTag));
             
             return passesMealFilter && passesGoalFilter && passesDietFilter && passesAllergyFilter;
@@ -227,7 +237,7 @@ const RecipeDrawPage = ({
         setLoading(true);
 
         setTimeout(() => {
-            // 🎯 【核心修正 5】：直接使用 'filteredRecipes' 狀態
+            // 直接使用 'filteredRecipes' 狀態
             const recipe = getRandomRecipe(filteredRecipes);
             
             if (!recipe) {
