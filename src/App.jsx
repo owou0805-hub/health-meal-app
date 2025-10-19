@@ -95,10 +95,14 @@ const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin 
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/recipes" element={<RecipeListPage />} />
                 
-                {/* 🎯 關鍵：將 userPreferences 傳遞給 RecipeDrawPage */}
+                {/* 🎯 【核心修正】：將 preferences 物件解構後傳遞 */}
                 <Route 
                     path="/recipes/draw" 
-                    element={<RecipeDrawPage preferences={userPreferences} />} 
+                    element={<RecipeDrawPage 
+                        defaultGoals={userPreferences.goals}
+                        defaultDiet={userPreferences.diet} 
+                        defaultAllergens={userPreferences.allergens}
+                    />} 
                 /> 
                 
                 <Route path="/recipe/:id" element={<RecipeDetailPage />} /> 
@@ -112,7 +116,7 @@ const AppLogicWrapper = ({ isLoggedIn, setIsLoggedIn, handleLogout, handleLogin 
                 <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
         </MainLayout>
-    ), [handleLogout, userPreferences]); 
+    ), [handleLogout, userPreferences]);
 
 
     // ====================================================================

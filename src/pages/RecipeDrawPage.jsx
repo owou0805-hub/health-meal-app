@@ -47,7 +47,7 @@ const ALLERGY_FILTERS = [
 const RecipeDrawPage = ({ 
     defaultAllergens = [], 
     defaultGoals = [],
-    defaultDiets = []
+    defaultDiet = null // 接收字串 '一般飲食' 或 null
 }) => {
     const navigate = useNavigate();
 
@@ -69,8 +69,11 @@ const RecipeDrawPage = ({
     // 篩選選單狀態
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedMeals, setSelectedMeals] = useState([]);
+    
+    // 🎯 【核心修正 2】：使用傳入的 props 初始化 state
     const [selectedGoals, setSelectedGoals] = useState(defaultGoals);
-    const [selectedDiets, setSelectedDiets] = useState(defaultDiets);
+    // 將傳入的字串 prop (defaultDiet) 轉換為陣列 state
+    const [selectedDiets, setSelectedDiets] = useState(defaultDiet ? [defaultDiet] : []);
     const [selectedAllergies, setSelectedAllergies] = useState(defaultAllergens); 
     
     // Hook
@@ -111,6 +114,7 @@ const RecipeDrawPage = ({
             });
         }
     };
+    
     useEffect(() => {
         // 只有當 prop 有值且改變時才更新，防止 Profile 頁面尚未載入時使用空陣列
         if (defaultAllergens && defaultAllergens.length > 0) {
@@ -119,10 +123,12 @@ const RecipeDrawPage = ({
         if (defaultGoals && defaultGoals.length > 0) {
             setSelectedGoals(defaultGoals);
         }
-        if (defaultDiets && defaultDiets.length > 0) {
-            setSelectedDiets(defaultDiets);
+        // 當 defaultDiet (字串) 存在時，更新 selectedDiets (陣列)
+        if (defaultDiet) {
+            setSelectedDiets([defaultDiet]);
         }
-    }, [defaultAllergens, defaultGoals, defaultDiets]);
+    }, [defaultAllergens, defaultGoals, defaultDiet]); // 依賴更新
+    
     //useEffect 處理資料庫載入
     useEffect(() => {
         const fetchRecipes = async () => {
