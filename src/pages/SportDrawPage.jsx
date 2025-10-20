@@ -8,20 +8,27 @@ import { supabase } from '../supabaseClient';
 const INTENSITY_FILTERS = ['低', '中', '高']; 
 
 // 函數：從陣列中隨機選取一個項目
-const getRandomSport = (sports) => {
-    if (sports.length === 0) return null;
-    const randomIndex = Math.floor(Math.random() * sports.length);
-    return sports[randomIndex];
+const getRandomItem = (items) => {
+    if (items.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * items.length);
+    return items[randomIndex];
 };
 
 // 輔助函數：將資料庫 Tags (可能為字串或陣列) 安全轉換為陣列 (小寫)
 const getSafeTags = (tags) => {
-    if (Array.isArray(tags)) return tags.map(t => t.trim().toLowerCase());
+    if (Array.isArray(tags)) {
+        return tags.map(t => t.trim().toLowerCase()); 
+    }
     if (typeof tags === 'string' && tags.trim()) {
-        return tags.replace(/[{}]/g, '').split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+        return tags
+            .replace(/[{}]/g, '') 
+            .split(',')
+            .map(t => t.trim().toLowerCase())
+            .filter(t => t); 
     }
     return [];
 };
+
 const SportDrawPage = () => {
     // Supabase 資料相關狀態
     const [allSports, setAllSports] = useState([]); 
@@ -32,7 +39,9 @@ const SportDrawPage = () => {
     const [drawnSport, setDrawnSport] = useState(null);
     const [isDrawing, setIsDrawing] = useState(false);
     // 強度篩選狀態
-    const [selectedIntensities, setSelectedIntensities] = useState([]);
+    const [selectedIntensity, setSelectedIntensity] = useState(null); // 假設強度是單選
+    const [filteredSports, setFilteredSports] = useState([]); // 儲存篩選結果
+
     // Hook 
     const sportImagePath = drawnSport ? drawnSport.image_url || drawnSport.image : null;
     const { 
@@ -40,22 +49,9 @@ const SportDrawPage = () => {
         loading: loadingImageUrl 
     } = useImageLoader(sportImagePath); 
 
-    // 處理選單開關
-    const toggleFilter = () => {
-        setIsFilterOpen(!isFilterOpen);
-    };
-    // 🎯 處理篩選標籤點擊 (多選邏輯 for Intensity)
-    const handleFilterClick = (type, tag) => {
-        if (type === 'intensity') {
-            // 強度篩選：多選邏輯 (因為用戶可能想選 "中" 或 "高")
-            setSelectedIntensities(prevIntensities => {
-                if (prevIntensities.includes(tag)) {
-                    return prevIntensities.filter(t => t !== tag);
-                }
-                return [...prevIntensities, tag];
-            });
-        }
-        // 這裡可以根據需要新增其他篩選邏輯，例如 duration
+    // 處理篩選標籤點擊 (單選)
+    const handleFilterClick = (tag) => {
+        setSelectedIntensity(prev => prev === tag ? null : tag);
     };
 
     useEffect(() => {
@@ -71,7 +67,9 @@ const SportDrawPage = () => {
                 console.error('Error fetching sports:', error);
                 setErrorData('無法載入運動資料。請檢查網路或資料庫設定。');
             } else {
-                setAllSports(data || []); 
+                setAllSports(data || []);
+                //初始化 filteredSports
+                setFilteredSports(data || []); 
             }
             setLoadingData(false);
         };
@@ -79,38 +77,45 @@ const SportDrawPage = () => {
         fetchSports();
     }, []);
 
+    // 監聽篩選條件，更新 filteredSports 列表
+    useEffect(() => {
+        if (loadingData) return;
+
+        let sports = allSports;
+
+        if (selectedIntensity) {
+            const lowerSelectedIntensity = selectedIntensity.toLowerCase();
+            sports = sports.filter(sport => {
+                const dataIntensities = getSafeTags(sport.intensity);
+                return dataIntensities.includes(lowerSelectedIntensity); 
+            });
+        }
+        
+        setFilteredSports(sports);
+
+    }, [selectedIntensity, allSports, loadingData]);
+
     // 抽一張運動卡片
     const drawRandomSport = () => {
-        if (loadingData || isDrawing || allSports.length === 0) return;
+        // 修改禁用條件
+        if (loadingData || isDrawing || filteredSports.length === 0) return;
 
-        setErrorData(null); 
+        setErrorData(null);
         setIsDrawing(true);
-        setDrawnSport(null); 
+        setDrawnSport(null);
 
         setTimeout(() => {
-            let filteredSports = allSports;
-            
-            // 🎯 實作強度篩選邏輯
-            if (selectedIntensities.length > 0) {
-                const lowerSelectedIntensities = selectedIntensities.map(t => t.toLowerCase());
-
-                filteredSports = filteredSports.filter(sport => {
-                    // 檢查運動的 intensity 欄位 (現在是 text[] 類型) 是否包含任一選中的強度
-                    const safeIntensities = getSafeTags(sport.intensity); // 重複使用 getSafeTags
-                    return lowerSelectedIntensities.some(intensity => safeIntensities.includes(intensity));
-                });
-            }
-
-            // 隨機選取一個運動
-            const randomIndex = Math.floor(Math.random() * filteredSports.length);
-            const newSport = filteredSports[randomIndex];
+            // 從已篩選的 filteredSports 列表中抽取
+            const newSport = getRandomItem(filteredSports);
 
             if (!newSport) {
-                 setErrorData(`抱歉，沒有找到符合選中強度的運動。`);
+                 // 如果沒抽到 (通常是 filteredSports.length === 0)
+                setErrorData(`抱歉！在 ${selectedIntensity || '所有'} 強度中找不到運動。`);
             }
+
             setDrawnSport(newSport);
             setIsDrawing(false);
-        }, 1000); // 延遲 1 秒
+        }, 1000);
     };
 
     return (
@@ -130,41 +135,55 @@ const SportDrawPage = () => {
             {/* 只有在資料載入完成且沒有錯誤時才顯示主要內容 */}
             {(!loadingData && !errorData) && (
                 <div className="recipe-draw-page-content content-relative">
-                    <h2>每日小運動：「動起來！」</h2>
-                    <p>點擊按鈕，系統為您隨機推薦一個輕鬆的居家運動！</p>
-
-                    {/* 🎯 新增篩選按鈕組件 */}
-                    <div className="filter-controls-area embedded-controls">
-                        <div className="filter-button-and-dropdown-container">
-                             {/* 這裡我們將強度篩選直接放在按鈕下方，不需要 toggle */}
-                             <h4 className="filter-group-title" style={{marginTop: '0'}}>運動強度 (多選)</h4> 
-                             <div className="filter-tags-group">
-                                 {INTENSITY_FILTERS.map(tag => (
-                                     <button 
-                                         key={tag}
-                                         className={`filter-tag-button ${selectedIntensities.includes(tag) ? 'active-selection' : ''}`} 
-                                         onClick={() => handleFilterClick('intensity', tag)} 
-                                     >
-                                         {tag}
-                                     </button>
-                                 ))}
-                             </div>
+                    
+                    <div style={{ width: '100%', textAlign: 'center', marginBottom: '1.5rem' }}>
+                        <h2>每日小運動：「動起來！」</h2>
+                        <p>點擊按鈕，系統為您隨機推薦一個輕鬆的居家運動！</p>
+                    </div>
+                    {/* 篩選器直接放在這裡 */}
+                    <div style={{ marginBottom: '1rem', width: '100%', maxWidth: '250px', margin: '0 auto 1rem auto' }}>
+                        <h4 className="filter-group-title" style={{ textAlign: 'center', marginBottom: '10px' }}>選擇運動強度</h4>
+                        {/* 篩選按鈕會並列為一列 */}
+                        <div className="filter-tags-group filter-radio-group">
+                            {INTENSITY_FILTERS.map(tag => (
+                                <button
+                                    key={tag}
+                                    className={`filter-tag-button ${selectedIntensity === tag ? 'active-meal-radio' : ''}`}
+                                    onClick={() => handleFilterClick(tag)}
+                                    disabled={isDrawing}
+                                >
+                                    {tag}
+                                </button>
+                            ))}
                         </div>
+                         {/* 提示符合條件的數量 */}
+                         <p style={{
+                             fontSize: '0.9em',
+                             color: '#0e4b2d',
+                             fontWeight: 'bold',
+                             textAlign: 'center',
+                             marginTop: '5px'
+                         }}>
+                             {loadingData ? '載入中...' : `目前有 ${filteredSports.length} 項運動符合條件`}
+                         </p>
                     </div>
                     <div className="draw-area">
                         <button 
                             className="draw-button" 
                             onClick={drawRandomSport}
-                            disabled={isDrawing || allSports.length === 0} 
+                            disabled={isDrawing || filteredSports.length === 0} 
                         >
-                            {isDrawing ? '正在思考...' : (allSports.length === 0 ? '無可用運動' : '開始運動吧！')}
+                            {isDrawing ? '正在思考...' : (
+                                allSports.length === 0 ? '無可用運動' :
+                                (filteredSports.length === 0 ? '無符合條件運動' : '開始運動吧！')
+                            )}
                         </button>
 
                         {/* 顯示抽出的運動卡片 */}
                         {drawnSport && (
                             <div className={`drawn-card ${isDrawing ? 'shaking' : ''}`}>
                                 
-                                {/* 🎯 核心修正 2：圖片渲染邏輯 - 使用 Hook 取得的 URL */}
+                                {/* 圖片渲染邏輯 - 使用 Hook 取得的 URL */}
                                 {(loadingImageUrl || !signedSportUrl) ? (
                                     // 圖片載入或簽名 URL 尚未準備好時顯示佔位符
                                     <div className="recipe-card-img-placeholder" style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f0f0c3' }}>
