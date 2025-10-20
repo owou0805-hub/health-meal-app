@@ -241,11 +241,10 @@ button:hover {
 /* 搜尋表單容器 */
 .main-search-bar {
     width: 100%;
-    max-width: 900px; /* 限制搜尋欄的最大寬度 */
     margin: 2rem auto 2rem auto; /* 上下邊距並水平置中 */
     display: flex;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 增加陰影使其浮現 */
-    border-radius: 8px;
+    border-radius: 50px;
     overflow: hidden; /* 確保子元素邊角被裁切 */
 }
 
@@ -264,6 +263,7 @@ button:hover {
     background-color: var(--primary-color); /* 使用主題色 */
     color: white;
     border: none;
+    width: 30%;
     padding: 12px 20px;
     cursor: pointer;
     font-size: 1.1em;
