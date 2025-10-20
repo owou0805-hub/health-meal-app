@@ -5,6 +5,23 @@ import '../index.css';
 import useImageLoader from '../hooks/useImageLoader'; 
 import { supabase } from '../supabaseClient'; 
 
+const INTENSITY_FILTERS = ['低', '中', '高']; 
+
+// 函數：從陣列中隨機選取一個項目
+const getRandomSport = (sports) => {
+    if (sports.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * sports.length);
+    return sports[randomIndex];
+};
+
+// 輔助函數：將資料庫 Tags (可能為字串或陣列) 安全轉換為陣列 (小寫)
+const getSafeTags = (tags) => {
+    if (Array.isArray(tags)) return tags.map(t => t.trim().toLowerCase());
+    if (typeof tags === 'string' && tags.trim()) {
+        return tags.replace(/[{}]/g, '').split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+    }
+    return [];
+};
 const SportDrawPage = () => {
     // Supabase 資料相關狀態
     const [allSports, setAllSports] = useState([]); 
@@ -14,13 +31,32 @@ const SportDrawPage = () => {
     // 抽卡流程相關狀態
     const [drawnSport, setDrawnSport] = useState(null);
     const [isDrawing, setIsDrawing] = useState(false);
-
-    // 🎯 核心修正 1：將 Hook 移到元件頂層，並修正路徑組裝
+    // 強度篩選狀態
+    const [selectedIntensities, setSelectedIntensities] = useState([]);
+    // Hook 
     const sportImagePath = drawnSport ? drawnSport.image_url || drawnSport.image : null;
     const { 
         imageUrl: signedSportUrl, 
         loading: loadingImageUrl 
     } = useImageLoader(sportImagePath); 
+
+    // 處理選單開關
+    const toggleFilter = () => {
+        setIsFilterOpen(!isFilterOpen);
+    };
+    // 🎯 處理篩選標籤點擊 (多選邏輯 for Intensity)
+    const handleFilterClick = (type, tag) => {
+        if (type === 'intensity') {
+            // 強度篩選：多選邏輯 (因為用戶可能想選 "中" 或 "高")
+            setSelectedIntensities(prevIntensities => {
+                if (prevIntensities.includes(tag)) {
+                    return prevIntensities.filter(t => t !== tag);
+                }
+                return [...prevIntensities, tag];
+            });
+        }
+        // 這裡可以根據需要新增其他篩選邏輯，例如 duration
+    };
 
     useEffect(() => {
         const fetchSports = async () => {
@@ -43,7 +79,7 @@ const SportDrawPage = () => {
         fetchSports();
     }, []);
 
-    
+    // 抽一張運動卡片
     const drawRandomSport = () => {
         if (loadingData || isDrawing || allSports.length === 0) return;
 
@@ -52,12 +88,29 @@ const SportDrawPage = () => {
         setDrawnSport(null); 
 
         setTimeout(() => {
-            const randomIndex = Math.floor(Math.random() * allSports.length);
-            const newSport = allSports[randomIndex];
+            let filteredSports = allSports;
+            
+            // 🎯 實作強度篩選邏輯
+            if (selectedIntensities.length > 0) {
+                const lowerSelectedIntensities = selectedIntensities.map(t => t.toLowerCase());
 
+                filteredSports = filteredSports.filter(sport => {
+                    // 檢查運動的 intensity 欄位 (現在是 text[] 類型) 是否包含任一選中的強度
+                    const safeIntensities = getSafeTags(sport.intensity); // 重複使用 getSafeTags
+                    return lowerSelectedIntensities.some(intensity => safeIntensities.includes(intensity));
+                });
+            }
+
+            // 隨機選取一個運動
+            const randomIndex = Math.floor(Math.random() * filteredSports.length);
+            const newSport = filteredSports[randomIndex];
+
+            if (!newSport) {
+                 setErrorData(`抱歉，沒有找到符合選中強度的運動。`);
+            }
             setDrawnSport(newSport);
             setIsDrawing(false);
-        }, 1000); 
+        }, 1000); // 延遲 1 秒
     };
 
     return (
@@ -80,6 +133,24 @@ const SportDrawPage = () => {
                     <h2>每日小運動：「動起來！」</h2>
                     <p>點擊按鈕，系統為您隨機推薦一個輕鬆的居家運動！</p>
 
+                    {/* 🎯 新增篩選按鈕組件 */}
+                    <div className="filter-controls-area embedded-controls">
+                        <div className="filter-button-and-dropdown-container">
+                             {/* 這裡我們將強度篩選直接放在按鈕下方，不需要 toggle */}
+                             <h4 className="filter-group-title" style={{marginTop: '0'}}>運動強度 (多選)</h4> 
+                             <div className="filter-tags-group">
+                                 {INTENSITY_FILTERS.map(tag => (
+                                     <button 
+                                         key={tag}
+                                         className={`filter-tag-button ${selectedIntensities.includes(tag) ? 'active-selection' : ''}`} 
+                                         onClick={() => handleFilterClick('intensity', tag)} 
+                                     >
+                                         {tag}
+                                     </button>
+                                 ))}
+                             </div>
+                        </div>
+                    </div>
                     <div className="draw-area">
                         <button 
                             className="draw-button" 
