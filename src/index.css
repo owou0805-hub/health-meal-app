@@ -65,7 +65,7 @@ p {
 
 /* 圖片 Logo 樣式 */
 .logo-img {
-  height: 160px;
+  height: 90px;
   width: auto;
 }
 
@@ -384,7 +384,8 @@ button:hover {
 }
 @media (max-width: 768px) {
     .navbar-main {
-        padding: 1rem 3rem !important; 
+        padding: 1rem 3rem !important;
+        justify-content: center; /*LOGO位置*/
     }
     .hamburger-icon {
         display: flex; /* 在手機版顯示 */
@@ -416,7 +417,7 @@ button:hover {
     }
     
     .navbar-links.open {
-        /* 【關鍵修正】：開啟時顯示 */
+        /* 開啟時顯示 */
         display: flex;
         /* 增加動畫效果 (可選) */
         animation: fadeIn 0.3s forwards;
@@ -429,14 +430,13 @@ button:hover {
     }
     
     .logo-img {
-        height: 160px;
+        height: 90px;
         width: auto;
     }
     .navbar-logo {
-        /* 【關鍵修正】：使用 Flex 確保內容對齊，並接受 Margin */
         display: flex !important; 
         align-items: center;
-        margin-left: 2rem !important; 
+        margin-right: 1.7rem !important; /*對齊*/
         padding: 0;  
     }
     /* 導覽列容器：保持 1rem 垂直間距，但左右間距為 0 */
