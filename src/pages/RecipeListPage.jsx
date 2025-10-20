@@ -114,7 +114,7 @@ const RecipeListPage = () => {
                     {/* 搜尋結果提示 */}
                     {currentSearchTerm ? (
                         <p className="highlight-text" style={{ marginBottom: '1.5rem', fontSize: '1.1em' }}>
-                            正在顯示 **「{currentSearchTerm}」** 的搜尋結果 ({filteredRecipes.length} 筆)
+                            正在顯示關於 「{currentSearchTerm}」 的搜尋結果 ({filteredRecipes.length} 筆)
                         </p>
                     ) : (
                         <p>探索我們完整的食譜庫，找到你的下一道美味！</p>
@@ -131,7 +131,7 @@ const RecipeListPage = () => {
                             
                         ) : (
                             <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
-                                抱歉，沒有找到符合 **「{currentSearchTerm}」** 的食譜。
+                                抱歉，沒有找到符合 「{currentSearchTerm}」 的食譜。
                             </p>
                         )}
                     </div>
