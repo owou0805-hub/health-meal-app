@@ -65,7 +65,7 @@ p {
 
 /* 圖片 Logo 樣式 */
 .logo-img {
-  height: 95px;
+  height: 90px;
   width: auto;
 }
 
@@ -430,7 +430,7 @@ button:hover {
     }
     
     .logo-img {
-        height: 95px;
+        height: 90px;
         width: auto;
     }
     .navbar-logo {
