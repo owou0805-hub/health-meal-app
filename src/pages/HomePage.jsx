@@ -47,7 +47,7 @@ const HomePage = () => {
     const [dailyRecipe, setDailyRecipe] = useState(null);
     const [loadingRecipes, setLoadingRecipes] = useState(true);
 
-    // --- 搜尋欄邏輯 ---
+    // 搜尋欄邏輯
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
     };
@@ -177,7 +177,7 @@ const HomePage = () => {
         
             {/* 每日健康小知識輪播區塊 */}
             <div className="daily-tips-section">
-                <h3 className="heandline-font">🧠每日健康提醒</h3> {/* */}
+                <h3 className="heandline-font">每日健康小知識</h3> {/* */}
                 {loadingTips ? (
                     <p style={{textAlign: 'center'}}>載入小知識中...</p> //
                 ) : currentTip ? ( // 檢查 currentTip 是否存在
@@ -228,7 +228,13 @@ const HomePage = () => {
                         查看所有食譜清單
                     </Link>
                     <Link to="/recipes/draw" className="quick-button primary-btn">
-                        懶人抽卡：「現在吃？」
+                        快速抽卡：「現在煮？」
+                    </Link>
+                    <Link to="/restaurant-draw" className="quick-button primary-btn">
+                        快速抽卡：「現在去吃？」
+                    </Link>
+                    <Link to="/sport-draw" className="quick-button primary-btn">
+                        快速抽卡：「運動一下」
                     </Link>
                 </div>
             </div>

@@ -280,7 +280,53 @@ button:hover {
 .main-search-bar button[type="submit"] i {
     margin-right: 8px;
 }
+/* --- HomePage 快速功能按鈕樣式 --- */
+.quick-access-buttons {
+  /* 讓按鈕群組本身置中 */
+  text-align: center;
+  margin-top: 2rem; /* 增加與上方推薦卡片的間距 */
+  margin-bottom: 1rem; /* 增加與頁面底部的間距 */
+  display: flex; /* 使用 Flexbox 來更好地控制按鈕 */
+  justify-content: center; /* 水平置中 Flex 項目 */
+  flex-wrap: wrap; /* 允許按鈕在小螢幕換行 */
+  gap: 1rem; 
+}
 
+.quick-access-buttons .quick-button {
+  /* 移除連結底線 */
+  text-decoration: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  font-weight: bold;
+  transition: background-color 0.2s, color 0.2s, transform 0.1s;
+  display: inline-block; /* 確保 padding 生效 */
+  border: 1px solid transparent; /* 預留邊框空間 */
+  cursor: pointer;
+  white-space: nowrap; /* 防止按鈕文字換行 */
+}
+
+/* 主要按鈕樣式 (範例，您可以自訂顏色) */
+.quick-access-buttons .primary-btn {
+  background-color: var(--primary-color); /* 使用您的主色調 */
+  color: white;
+}
+
+.quick-access-buttons .primary-btn:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+/* 次要 (外框) 按鈕樣式 (範例) */
+.quick-access-buttons .primary-btn-outline {
+  background-color: transparent;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.quick-access-buttons .primary-btn-outline:hover {
+  background-color: rgba(125, 157, 156, 0.1); /* 主色調的淡淡背景 */
+  transform: translateY(-2px);
+}
 /* --- 漢堡圖示樣式 --- */
 .menu-overlay {
     /* 固定在畫面上，確保覆蓋整個視窗 */
