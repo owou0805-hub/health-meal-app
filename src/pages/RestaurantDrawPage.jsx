@@ -170,7 +170,7 @@ const RestaurantDrawPage = () => {
             <div className="recipe-draw-page-content content-relative"> 
                 
                 <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
-                    <h2 className="heandline-font">輕食餐廳抽卡：「現在出門吃什麼？」</h2>
+                    <h2 className="heandline-font">輕食餐廳抽卡</h2>
                     <p>選擇地區與類型，讓系統為您隨機推薦一間健康輕食餐廳！</p>
 
                     {/* 篩選選單區塊 */}
@@ -185,7 +185,7 @@ const RestaurantDrawPage = () => {
                         {isFilterOpen && (
                             <div className="filter-options-panel filter-dropdown-float"> 
                                 
-                                {/* 🎯 【新增】：提示文字 */}
+                                {/* 【新增】：提示文字 */}
                                 <p style={{
                                     fontSize: '0.9em', 
                                     color: '#0e4b2d', 

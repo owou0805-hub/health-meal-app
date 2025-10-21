@@ -137,7 +137,7 @@ const SportDrawPage = () => {
                 <div className="recipe-draw-page-content content-relative">
                     
                     <div style={{ width: '100%', textAlign: 'center', marginBottom: '1.5rem' }}>
-                        <h2>每日小運動：「動起來！」</h2>
+                        <h2>每日小運動</h2>
                         <p>點擊按鈕，系統為您隨機推薦一個輕鬆的居家運動！</p>
                     </div>
                     {/* 篩選器直接放在這裡 */}

@@ -204,7 +204,7 @@ const RecipeDrawPage = ({
             
             const passesMealFilter = lowerMeals.length === 0 || lowerMeals.some(mealTag => safeTags.includes(mealTag));
             const passesGoalFilter = lowerGoals.length === 0 || lowerGoals.some(goalTag => safeTags.includes(goalTag));
-            // 🎯 【核心修正】：修改飲食習慣的篩選邏輯
+            // 修改飲食習慣的篩選邏輯
             // 檢查是否 (沒有選擇飲食) 或 (選擇的是'一般飲食')
             const dietFilterIsIgnored = 
                 lowerDiets.length === 0 || 
@@ -270,7 +270,7 @@ const RecipeDrawPage = ({
                 
                 {/* 標題與篩選鈕定位區 */}
                 <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
-                    <h2 className="heandline-font">食譜抽卡：「現在吃什麼？」</h2>
+                    <h2 className="heandline-font">食譜抽卡：「現在煮什麼？」</h2>
                     <p>點擊按鈕，讓系統為你隨機推薦一道美味輕食！</p>
 
                     {/* 篩選選單區塊 */}
