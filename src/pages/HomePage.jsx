@@ -1,8 +1,9 @@
 // src/pages/HomePage.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import RecipeCard from '../components/RecipeCard'
 import '../index.css'; 
 import banner1 from '../assets/banner1.jpg'; 
 import banner2 from '../assets/banner2.jpg'; 
@@ -30,18 +31,18 @@ const getDailyRandomIndex = (max) => {
 const HomePage = () => {
     const navigate = useNavigate();
     
-    // --- 搜尋欄狀態 ---
+    // 搜尋欄狀態
     const [searchTerm, setSearchTerm] = useState('');
     
-    // --- Banner 狀態 ---
+    // Banner 狀態
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-    // --- 每日健康小知識輪播狀態 ---
+    // 每日健康小知識輪播狀態 
     const [dailyTips, setDailyTips] = useState([]);
     const [currentTipIndex, setCurrentTipIndex] = useState(0); 
     const [loadingTips, setLoadingTips] = useState(true);
 
-    // 🎯 【新增狀態】：食譜資料和推薦食譜
+    // 食譜資料和推薦食譜
     const [allRecipes, setAllRecipes] = useState([]); 
     const [dailyRecipe, setDailyRecipe] = useState(null);
     const [loadingRecipes, setLoadingRecipes] = useState(true);
@@ -63,36 +64,20 @@ const HomePage = () => {
         setSearchTerm('');
     };
 
-    // ----------------------------------------------------
-    // 🎯 Banner & Tip 的自動輪播邏輯
-    // ----------------------------------------------------
+    // Banner 的自動輪播邏輯
     useEffect(() => {
-        // Banner 自動輪播 (每 4 秒)
         const interval = setInterval(() => {
-            setCurrentBannerIndex((prevIndex) => 
+            setCurrentBannerIndex((prevIndex) =>
                 (prevIndex + 1) % banners.length
-            );
-        }, 4000); 
+            ); //
+        }, 4000);; 
         
-        // Tip 自動輪播 (每 8 秒)
-        const tipInterval = setInterval(() => {
-            setDailyTips(prevTips => {
-                if (prevTips.length > 0) {
-                    setCurrentTipIndex(prevIndex => (prevIndex + 1) % prevTips.length);
-                }
-                return prevTips;
-            });
-        }, 8000); 
-
         return () => {
             clearInterval(interval);
-            clearInterval(tipInterval);
         };
     }, []);
 
-    // ----------------------------------------------------
-    // 🎯 從 Supabase 獲取每日小知識的邏輯
-    // ----------------------------------------------------
+    // 從 Supabase 獲取每日小知識的邏輯
     useEffect(() => {
         const fetchDailyTips = async () => {
             setLoadingTips(true);
@@ -104,7 +89,12 @@ const HomePage = () => {
             if (error) {
                 console.error('Error fetching daily tips:', error);
             } else {
-                setDailyTips(data || []);
+                const tips = data || [];
+                setDailyTips(tips); 
+                if (tips.length > 0) {
+                    const dailyIndex = getDailyRandomIndex(tips.length);
+                    setCurrentTipIndex(dailyIndex); // 設定當天固定顯示的 Tip 索引
+                }
             }
             setLoadingTips(false);
         };
@@ -112,8 +102,7 @@ const HomePage = () => {
         fetchDailyTips();
     }, []); 
 
-    // 🎯 【新增】：獲取食譜並選擇每日精選
-    // ----------------------------------------------------
+    // 獲取食譜並選擇每日精選
     const fetchAndSelectDailyRecipe = useCallback(async () => {
         setLoadingRecipes(true);
         
@@ -142,7 +131,7 @@ const HomePage = () => {
     useEffect(() => {
         fetchAndSelectDailyRecipe();
     }, [fetchAndSelectDailyRecipe]);
-    // 🎯 輔助函數：安全獲取 Tags (用於 JSX 渲染)
+    // 輔助函數：安全獲取 Tags (用於 JSX 渲染)
     const getSafeTags = (tags) => {
         if (Array.isArray(tags)) return tags;
         if (typeof tags === 'string' && tags.trim()) {
@@ -150,12 +139,12 @@ const HomePage = () => {
         }
         return [];
     };
+    // 從 dailyTips 陣列和 currentTipIndex 獲取當前 Tip 物件
+    const currentTip = dailyTips.length > 0 && dailyTips[currentTipIndex] ? dailyTips[currentTipIndex] : null;
     return (
         <div className="home-page-content">
-            
-            {/* --------------------------------- */}
-            {/* 1. 搜尋欄位 */}
-            {/* --------------------------------- */}
+
+            {/* 搜尋欄位 */}
             <form className="main-search-bar" onSubmit={handleSearchSubmit}>
                 <input
                     type="text"
@@ -168,9 +157,7 @@ const HomePage = () => {
                 </button>
             </form>
 
-            {/* --------------------------------- */}
-            {/* 2. 輪播圖區塊 (Banner) */}
-            {/* --------------------------------- */}
+            {/* 輪播圖區塊 (Banner) */}
             <div className="banner-container">
                 {banners.map((banner, index) => (
                     <img
@@ -187,30 +174,25 @@ const HomePage = () => {
                     />
                 ))}
             </div>
-            
-            {/* --------------------------------- */}
-            {/* 3. 每日健康小知識輪播區塊 */}
-            {/* --------------------------------- */}
+        
+            {/* 每日健康小知識輪播區塊 */}
             <div className="daily-tips-section">
-                <h3 className="heandline-font">🧠 每日健康提醒</h3>
+                <h3 className="heandline-font">🧠每日健康提醒</h3> {/* */}
                 {loadingTips ? (
-                    <p style={{textAlign: 'center'}}>載入小知識中...</p>
-                ) : currentTip ? (
+                    <p style={{textAlign: 'center'}}>載入小知識中...</p> //
+                ) : currentTip ? ( // 檢查 currentTip 是否存在
                     <div className="tip-card">
-                        <h4>{currentTip.title}</h4>
-                        <p className="tip-content">{currentTip.content}</p>
-                        <span className="tip-category">{currentTip.category}</span>
+                        <h4>{currentTip.title}</h4> {/* */}
+                        <p className="tip-content">{currentTip.content}</p> {/* */}
+                        <span className="tip-category">{currentTip.category}</span> {/* */}
                     </div>
                 ) : (
-                    <p style={{textAlign: 'center', color: '#888'}}>目前沒有可顯示的健康小知識。</p>
+                    <p style={{textAlign: 'center', color: '#888'}}>目前沒有可顯示的健康小知識。</p> //
                 )}
             </div>
 
-
-            {/* --------------------------------- */}
-            {/* 4. 頁面內容：每日精選與功能入口 */}
-            {/* --------------------------------- */}
-            <div className="feature-section">
+            {/* 頁面內容：每日精選與功能入口 */}
+              <div className="feature-section">
                 <h2 className="heandline-font">今日輕食精選</h2>
                 <p>探索我們今日為您挑選的一道健康美味！</p>
                 
