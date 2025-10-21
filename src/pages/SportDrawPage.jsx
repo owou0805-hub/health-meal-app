@@ -138,7 +138,7 @@ const SportDrawPage = () => {
                     
                     <div style={{ width: '100%', textAlign: 'center', marginBottom: '1.5rem' }}>
                         <h2>每日小運動</h2>
-                        <p>點擊按鈕，系統為您隨機推薦一個輕鬆的居家運動！</p>
+                        <p> 讓系統為您隨機推薦一個居家運動！</p>
                     </div>
                     {/* 篩選器直接放在這裡 */}
                     <div style={{ marginBottom: '1rem', width: '100%', maxWidth: '250px', margin: '0 auto 1rem auto' }}>
