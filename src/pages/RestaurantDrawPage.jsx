@@ -4,8 +4,8 @@ import '../index.css';
 import useImageLoader from '../hooks/useImageLoader'; 
 import { supabase } from '../supabaseClient'; 
  
-const LOCATION_FILTERS = ['霧峰區', '大里區', '東區', '南區', '中區', '西區', '北區', '南屯區', '西屯區', '北屯區'];
-const TYPE_FILTERS = ['沙拉', '水煮餐', '輕食/健康餐盒'];
+const LOCATION_FILTERS = ['霧峰區', '大里區','太平區', '東區', '南區', '中區', '西區', '北區', '南屯區', '西屯區', '北屯區'];
+const TYPE_FILTERS = ['沙拉', '輕食/健康餐盒', '健康早午餐', '點心'];
 
 // 函數：從陣列中隨機選取一個項目
 const getRandomRestaurant = (restaurants) => {
@@ -89,7 +89,7 @@ const RestaurantDrawPage = () => {
         
         fetchRestaurants();
     }, []);
-    // 🎯 【核心修正 3】：此 useEffect 專門用來更新 'filteredRestaurants' 狀態
+    // 此 useEffect 專門用來更新 'filteredRestaurants' 狀態
     useEffect(() => {
         if (loadingData) return;
 
@@ -129,19 +129,15 @@ const RestaurantDrawPage = () => {
 
         // 使用 setTimeout 模擬網路載入和抽卡動畫
         setTimeout(() => {
-            // 🎯 【核心修正 4】：直接使用 'filteredRestaurants' 狀態
             const selectedPlace = getRandomRestaurant(filteredRestaurants);
 
             if (!selectedPlace) {
                 let filterInfo = '所有餐廳中';
-                if (selectedLocation && selectedType) {
-                    filterInfo = `在 ${selectedLocation} 且類型為 ${selectedType}`;
-                } else if (selectedLocation) {
-                    filterInfo = `在 ${selectedLocation}`;
-                } else if (selectedType) {
-                    filterInfo = `類型為 ${selectedType}`;
+                if (selectedLocation) filterInfo += `在 ${selectedLocation}`;
+                if (selectedType) {
+                    filterInfo += (filterInfo ? ' 且' : '') + ` 類型為 ${selectedType}`;
                 }
-                setError(`抱歉！${filterInfo} 中找不到任何符合條件的餐廳。`);
+                setError(`抱歉！${filterInfo || '所有餐廳'} 中找不到任何符合條件的餐廳。`);
             }
 
             setCurrentRestaurant(selectedPlace);
@@ -235,9 +231,11 @@ const RestaurantDrawPage = () => {
                         disabled={loading || filteredRestaurants.length === 0}
                         className="draw-button" 
                     >
-                        {loading ? '正在搜尋推薦中...' : (allRestaurants.length === 0 ? '無可用餐廳' : '抽出餐廳！')}
+                        {loading ? '正在搜尋推薦中...' : ( //
+                            allRestaurants.length === 0 ? '無可用餐廳' :
+                            (filteredRestaurants.length === 0 ? '無符合條件餐廳' : '抽出餐廳！')
+                        )}
                     </button>
-                    
                     {/* 優先顯示錯誤訊息 */}
                     {error && <p className="highlight-text" style={{ color: 'red' }}>{error}</p>}
                     
