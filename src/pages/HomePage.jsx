@@ -3,7 +3,7 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import RecipeCard from '../components/RecipeCard'
+import useImageLoader from '../hooks/useImageLoader';
 import '../index.css'; 
 import banner1 from '../assets/banner1.jpg'; 
 import banner2 from '../assets/banner2.jpg'; 
@@ -141,6 +141,7 @@ const HomePage = () => {
     };
     // 從 dailyTips 陣列和 currentTipIndex 獲取當前 Tip 物件
     const currentTip = dailyTips.length > 0 && dailyTips[currentTipIndex] ? dailyTips[currentTipIndex] : null;
+    const { imageUrl: dailyRecipeImageUrl, loading: loadingImage } = useImageLoader(dailyRecipe?.image_url);
     return (
         <div className="home-page-content">
 
@@ -193,33 +194,41 @@ const HomePage = () => {
 
             {/* 頁面內容：每日精選與功能入口 */}
               <div className="feature-section">
-                <h2 className="heandline-font">今日輕食精選</h2>
-                <p>探索我們今日為您挑選的一道健康美味！</p>
-                
+                <h2 className="heandline-font">今日輕食精選</h2> {/* */}
+                <p>探索我們今日為您挑選的一道健康美味！</p> {/* */}
+
                 {loadingRecipes ? (
-                    <p>正在為您挑選每日精選...</p>
+                    <p>正在為您挑選每日精選...</p> //
                 ) : dailyRecipe ? (
-                    /* 每日推薦卡片 */
+                    /* 每日推薦卡片 - 使用您提供的結構 */
                     <div className="daily-recommend-card">
-                        <Link to={`/recipe/${dailyRecipe.id}`} className="recipe-card-link">
-                            <div className="recipe-card"> 
-                                <img 
-                                    src={dailyRecipe.image_url || '/placeholder-recipe.jpg'} // 假設已連動 Storage
-                                    alt={dailyRecipe.title} 
-                                    className="recipe-card-img" 
-                                />
-                                <h3>{dailyRecipe.title}</h3>
+                        <Link to={`/recipe/${dailyRecipe.id}`} className="recipe-card-link"> {/* */}
+                            <div className="recipe-card"> {/* */}
+                                {loadingImage ? ( // 檢查圖片 URL 是否正在載入
+                                    <div className="recipe-card-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eee', height: '150px' }}>
+                                        圖片載入中...
+                                    </div>
+                                ) : (
+                                    <img
+                                        // 使用從 useImageLoader 獲取的 URL
+                                        src={dailyRecipeImageUrl}
+                                        alt={dailyRecipe.title} //
+                                        className="recipe-card-img" //
+                                        onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-recipe.jpg'; }}
+                                    />
+                                )}
+                                <h3>{dailyRecipe.title}</h3> {/* */}
                                 <p className="highlight-text">
-                                    {getSafeTags(dailyRecipe.tags).slice(0, 2).join(' | ')}
+                                    {getSafeTags(dailyRecipe.tags).slice(0, 2).join(' | ')} {/* */}
                                 </p>
                                 <span className="toggle-form-link" style={{ marginTop: '0.5rem' }}>
                                     查看詳情 »
-                                </span>
+                                </span> {/* */}
                             </div>
                         </Link>
                     </div>
                 ) : (
-                    <p>目前食譜庫中沒有可推薦的食譜。</p>
+                    <p>目前食譜庫中沒有可推薦的食譜。</p> //
                 )}
 
                 {/* 快速功能按鈕 */}
