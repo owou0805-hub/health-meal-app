@@ -171,7 +171,7 @@ button:hover {
   color: var(--primary-color);
 }
 
-/*5. 已登入佈局的樣式 (MainLayout)*/
+/* 已登入佈局的樣式 (MainLayout)*/
 .main-layout {
     display: flex;
     flex-direction: column;
@@ -225,7 +225,7 @@ button:hover {
     margin: 0;
     padding: 0;
 }
-/* 🎯 確保登出按鈕作為最後一個項目不會被擠壓 */
+/* 確保登出按鈕作為最後一個項目不會被擠壓 */
 .navbar-links button {
     margin-left: 1rem;
     margin-right: 3rem; 
@@ -548,7 +548,62 @@ button:hover {
     opacity: 1;
     position: relative;
 }
+/* --- 每日健康小知識輪播樣式 --- */
 
+.daily-tips-section {
+    width: 100%;
+    max-width: 600px; /* 限制寬度 */
+    margin: 2rem auto; /* 確保水平置中 */
+    padding: 20px 1rem;
+    text-align: center;
+}
+
+.daily-tips-section h3 {
+    margin-bottom: 1.5rem;
+    color: var(--secondary-color);
+}
+.tip-card {
+    background-color: var(--medium-background); 
+    border-radius: 12px;
+    padding: 25px 30px; /* 增加內邊距 */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); 
+    transition: all 0.3s ease-out; 
+    cursor: default; 
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+
+.tip-card:hover {
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tip-card h4 {
+    font-size: 1.4rem; /* 增大標題 */
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--primary-color); /* 使用主題色 */
+}
+
+/* Tip 內容和分類的優化 */
+.tip-content {
+    font-size: 1rem;
+    color: var(--font-color-dark);
+    margin-bottom: 15px;
+    line-height: 1.6;
+    text-align: center; /* 確保內容置中 */
+}
+
+.tip-category {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px; 
+    font-size: 0.85rem;
+    background-color: var(--primary-color); 
+    color: white; 
+    font-weight: 600;
+}
 /* 食譜列表網格佈局 */
 .recipe-list-section {
     max-width: 1300px;
