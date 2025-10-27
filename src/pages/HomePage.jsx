@@ -84,7 +84,7 @@ const HomePage = () => {
             
             const { data, error } = await supabase
                 .from('daily_tips')
-                .select('*'); 
+                .select('id, title, content, category');
                 
             if (error) {
                 console.error('Error fetching daily tips:', error);
@@ -177,14 +177,14 @@ const HomePage = () => {
         
             {/* 每日健康小知識輪播區塊 */}
             <div className="daily-tips-section">
-                <h3 className="heandline-font">每日健康小知識</h3> {/* */}
+                <h3 className="heandline-font">每日健康小知識</h3>
                 {loadingTips ? (
-                    <p style={{textAlign: 'center'}}>載入小知識中...</p> //
+                    <p style={{textAlign: 'center'}}>載入小知識中...</p> 
                 ) : currentTip ? ( // 檢查 currentTip 是否存在
                     <div className="tip-card">
-                        <h4>{currentTip.title}</h4> {/* */}
-                        <p className="tip-content">{currentTip.content}</p> {/* */}
-                        <span className="tip-category">{currentTip.category}</span> {/* */}
+                        <h4>{currentTip.title}</h4>
+                        <p className="tip-content">{currentTip.content}</p> 
+                        <span className="tip-category">{currentTip.category}</span>
                     </div>
                 ) : (
                     <p style={{textAlign: 'center', color: '#888'}}>目前沒有可顯示的健康小知識。</p> //
