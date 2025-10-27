@@ -271,6 +271,7 @@ const RecipeDrawPage = ({
                 {/* 標題與篩選鈕定位區 */}
                 <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
                     <h2 className="heandline-font">食譜抽卡：「現在煮什麼？」</h2>
+                    <p>—可至個人檔案修改飲食偏好—</p>
                     <p>讓系統為你隨機推薦一道美味輕食！</p>
 
                     {/* 篩選選單區塊 */}
