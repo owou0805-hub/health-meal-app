@@ -549,76 +549,65 @@ button:hover {
     position: relative;
 }
 /* --- 每日健康小知識輪播樣式 --- */
-
 .daily-tips-section {
-    width: 100%;
-    max-width: 600px; /* 限制寬度 */
-    margin: 2rem auto; /* 確保水平置中 */
-    padding: 20px 1rem;
-    text-align: center;
+  width:90%; /* 限制區塊寬度 */
+  margin: 2.5rem auto; /* 上下邊距設大一點，左右 auto 置中 */
+  padding: 1.5rem;
+  background-color: #f0f8f1; 
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  text-align: center; /* 讓標題和載入文字置中 */
 }
 
 .daily-tips-section h3 {
-    margin-bottom: 1.5rem;
-    color: var(--secondary-color);
-}
-.tip-card {
-    background-color: var(--medium-background); 
-    border-radius: 12px;
-    padding: 25px 30px; /* 增加內邊距 */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); 
-    transition: all 0.3s ease-out; 
-    cursor: default; 
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: var(--secondary-color); 
 }
 
-.tip-card:hover {
-    transform: translateY(-3px); 
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+.tip-card {
+  background-color: #ffffff; 
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0; 
+  text-align: right; /* 卡片內文字靠左對齊 */
+  animation: fadeIn 0.5s ease-out; /* 淡入動畫 */
 }
 
 .tip-card h4 {
-    font-size: 1.4rem; /* 增大標題 */
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: var(--primary-color); /* 使用主題色 */
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+  color: var(--primary-color); /* 主色調 */
+  font-size: 1.2em;
+  text-align: center;
 }
-
-/* Tip 內容和分類的優化 */
 .tip-content {
-    font-size: 1rem;
-    color: var(--font-color-dark);
-    margin-bottom: 15px;
-    line-height: 1.6;
-    text-align: center; /* 確保內容置中 */
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  color: #555;
+  font-size: 1rem;
+  text-align: center; 
 }
 
 .tip-category {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 20px; 
-    font-size: 0.85rem;
-    background-color: var(--primary-color); 
-    color: white; 
-    font-weight: 600;
-}
-/* 食譜列表網格佈局 */
-.recipe-list-section {
-    max-width: 1300px;
-    margin: 0 auto 3rem auto; /* 置中並留出底部空間 */
-    padding: 0 1rem;
+  display: inline-block; /* 讓背景和 padding 生效 */
+  background-color: var(--medium-background); /* 使用中性背景色 */
+  color: var(--font-color-dark); /* 深色文字 */
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 500;
 }
 
-.recipe-grid-container {
-    display: grid;
-    /* 4 欄 */
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 2rem;
-    /* 高度一致*/
-    grid-auto-rows: 1fr; 
+/* 清除浮動，避免影響下方元素佈局 */
+.tip-card::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* 食譜卡片 */
