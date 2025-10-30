@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'; 
 import '../index.css';
-import useImageLoader from '../hooks/useImageLoader'; 
 import { supabase } from '../supabaseClient'; 
 
 const INTENSITY_FILTERS = ['低', '中', '高']; 
@@ -41,13 +40,6 @@ const SportDrawPage = () => {
     // 強度篩選狀態
     const [selectedIntensity, setSelectedIntensity] = useState(null); // 假設強度是單選
     const [filteredSports, setFilteredSports] = useState([]); // 儲存篩選結果
-
-    // Hook 
-    const sportImagePath = drawnSport ? drawnSport.image_url || drawnSport.image : null;
-    const { 
-        imageUrl: signedSportUrl, 
-        loading: loadingImageUrl 
-    } = useImageLoader(sportImagePath); 
 
     // 處理篩選標籤點擊 (單選)
     const handleFilterClick = (tag) => {
@@ -182,30 +174,6 @@ const SportDrawPage = () => {
                         {/* 顯示抽出的運動卡片 */}
                         {drawnSport && (
                             <div className={`drawn-card ${isDrawing ? 'shaking' : ''}`}>
-                                
-                                {/* 圖片渲染邏輯 - 使用 Hook 取得的 URL */}
-                                {(loadingImageUrl || !signedSportUrl) ? (
-                                    // 圖片載入或簽名 URL 尚未準備好時顯示佔位符
-                                    <div className="recipe-card-img-placeholder" style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f0f0c3' }}>
-                                        {loadingImageUrl ? '圖片載入中...' : '圖片準備中...'}
-                                    </div>
-                                ) : (
-                                    // 圖片載入完成後使用簽名 URL
-                                    <img 
-                                        src={signedSportUrl} // 使用 Hook 取得的 Signed URL
-                                        alt={drawnSport.name} 
-                                        className="recipe-card-img" 
-                                    />
-                                )}
-                                {/* 示意圖文字 */}
-                                <p style={{
-                                    fontSize: '0.75rem', 
-                                    color: '#a43d3dff', 
-                                    margin: '0 0 0 0',
-                                    textAlign: 'center'
-                                }}>
-                                    (圖片為示意圖)
-                                </p>
                                 {/* 運動名稱 (標題) */}
                                 <h3>{drawnSport.name}</h3>
                                 
