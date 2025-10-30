@@ -1049,7 +1049,7 @@ button:hover {
     padding: 2rem;
     margin-top: 2rem;
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
     animation: fadeIn 0.5s ease-out;
     box-sizing: border-box !important; /* 確保內邊距和邊框不會溢出父元素 */
