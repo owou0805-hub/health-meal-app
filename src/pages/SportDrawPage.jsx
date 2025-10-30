@@ -187,7 +187,7 @@ const SportDrawPage = () => {
                                 
                                 {/* 教學文字 ( Supabase 欄位是 instruction) */}
                                 <p className="highlight-text" style={{textAlign: 'left', marginTop: '1rem'}}>
-                                    教學：
+                                    簡易教學：
                                 </p>
                                 <p style={{textAlign: 'left'}}>
                                     {drawnSport.instruction}
@@ -201,7 +201,7 @@ const SportDrawPage = () => {
                                         rel="noopener noreferrer"
                                         className="toggle-form-link"
                                     >
-                                        觀看教學影片 »
+                                        詳細影片教學 »
                                     </a>
                                 )}
                             </div>
