@@ -31,7 +31,7 @@ const getSafeTags = (tags) => {
 // 篩選器的選項
 const MEAL_FILTERS = ['早餐', '早午餐', '午餐', '點心', '晚餐'];
 const HEALTH_GOAL_FILTERS = [
-    '減脂', '增肌','低碳水','高纖維','降膽固醇','低鈉飲食', '美肌養顏', 
+    '減脂', '增肌','低碳水','高纖維','降膽固醇','低鈉飲食', 
     '增加能量改善疲勞', '提升專注力', '增進睡眠品質'
 ];
 const DIET_HABIT_FILTERS = [
